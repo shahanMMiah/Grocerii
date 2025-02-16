@@ -1,14 +1,40 @@
+//go:generate fyne bundle -o bundled.go data.json
 package main
 
 import (
+	"fmt"
+
+	"fyne.io/fyne/v2/app"
+)
+
+func main() {
+
+	a := app.NewWithID("Grocerii")
+
+	w := a.NewWindow("Grocerii App")
+
+	dataUR := GetDataURI(a)
+
+	ings, recipes := ReadFile(dataUR)
+	fmt.Println(ings)
+	fmt.Println(recipes)
+
+	buildUI(a, w, ings, recipes, dataUR)
+
+	w.ShowAndRun()
+
+}
+
+/*
+
+	import (
 	"bufio"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
-)
+	)
 
-func main() {
 	ings := MakeIngredients()
 
 	recipes := make([]recipe, 0)
@@ -69,4 +95,4 @@ func main() {
 		}
 
 	}
-}
+*/

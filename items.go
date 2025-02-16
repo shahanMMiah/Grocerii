@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"os"
+
+	"fyne.io/fyne/v2"
 )
 
 type recipe struct {
@@ -26,6 +28,8 @@ const (
 	ltr   unitType = "ltr"
 	unt   unitType = "unit"
 )
+
+var unitVals = []string{grams, kg, ml, ltr, unt}
 
 func MakeIngredients() []ingredient {
 	ingredients := make([]ingredient, 0)
@@ -66,6 +70,22 @@ func AddRecipeIngredients(r recipe, ings []ingredient) []ingredient {
 	return ings
 }
 
+func CreateJson(i []ingredient, r []recipe) []byte {
+
+	data := make(map[string]interface{}, 0)
+
+	data["i"] = i
+	data["r"] = r
+
+	dataJson, err := json.Marshal(data)
+	if err != nil {
+		panic(err)
+	}
+
+	return dataJson
+
+}
+
 func WriteFile(file string, i []ingredient, r []recipe) {
 
 	data := make(map[string]interface{}, 0)
@@ -78,15 +98,14 @@ func WriteFile(file string, i []ingredient, r []recipe) {
 		panic(err)
 	}
 	os.WriteFile(file, dataJson, 0644)
+
 }
 
-func ReadFile(file string) ([]ingredient, []recipe) {
-	byteval, err := os.ReadFile(file)
-	if err != nil {
-		panic(err)
-	}
+func ReadFile(ur fyne.URI) ([]ingredient, []recipe) {
+
+	dataConent := ReadData(ur)
 	data := make(map[string][]map[string]interface{})
-	json.Unmarshal(byteval, &data)
+	json.Unmarshal(dataConent, &data)
 
 	ings := MakeIngredients()
 	recs := make([]recipe, 0)
