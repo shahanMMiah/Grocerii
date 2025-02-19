@@ -21,7 +21,7 @@ func main() {
 	fmt.Println(ings)
 	fmt.Println(recipes)
 
-	BuildUI(a, w, &ings, recipes, dataUR)
+	BuildUI(a, w, &ings, &recipes, dataUR)
 
 	w.ShowAndRun()
 

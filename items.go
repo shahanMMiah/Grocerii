@@ -8,9 +8,12 @@ import (
 	"fyne.io/fyne/v2"
 )
 
+type item interface{}
+
 type recipe struct {
 	Name        string
 	Ingredients []ingredient
+	Check       bool
 }
 
 type ingredient struct {
@@ -67,6 +70,19 @@ func RemoveIngredient(i []ingredient, ind int) []ingredient {
 
 }
 
+func RemoveRecipes(i []recipe, ind int) []recipe {
+
+	newRec := make([]recipe, 0)
+	for nInd, nIng := range i {
+		if nInd != ind {
+			newRec = append(newRec, nIng)
+		}
+	}
+
+	return newRec
+
+}
+
 func AddIngredients(name string, amount float64, emoji rune, unit unitType, check bool, ingredients []ingredient) []ingredient {
 
 	for i, val := range ingredients {
@@ -87,10 +103,22 @@ func AddIngredients(name string, amount float64, emoji rune, unit unitType, chec
 	return ingredients
 }
 
+func AddRecipe(name string, recipes []recipe) []recipe {
+
+	i := recipe{
+		Name:        name,
+		Ingredients: nil,
+	}
+
+	recipes = append(recipes, i)
+	return recipes
+}
+
 func MakeRecipe(name string, ings []ingredient) recipe {
 	return recipe{
 		name,
 		ings,
+		false,
 	}
 }
 
@@ -156,20 +184,23 @@ func ReadFile(ur fyne.URI) ([]ingredient, []recipe) {
 
 	for _, r := range data["r"] {
 		rIng := MakeIngredients()
-		for _, ing := range r["Ingredients"].([]interface{}) {
-			ingMap := ing.(map[string]interface{})
 
-			rIng = AddIngredients(
-				ingMap["Name"].(string),
-				ingMap["Amount"].(float64),
-				rune(ingMap["Emoji"].(float64)),
-				ingMap["Unit"].(unitType),
-				ingMap["Check"].(bool),
-				rIng,
-			)
+		if r["Ingredients"] != nil {
 
+			for _, ing := range r["Ingredients"].([]interface{}) {
+				ingMap := ing.(map[string]interface{})
+
+				rIng = AddIngredients(
+					ingMap["Name"].(string),
+					ingMap["Amount"].(float64),
+					rune(ingMap["Emoji"].(float64)),
+					ingMap["Unit"].(unitType),
+					ingMap["Check"].(bool),
+					rIng,
+				)
+
+			}
 		}
-
 		recs = append(recs, MakeRecipe(r["Name"].(string), rIng))
 
 	}
