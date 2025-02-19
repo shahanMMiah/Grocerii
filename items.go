@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 
 	"fyne.io/fyne/v2"
@@ -17,6 +18,7 @@ type ingredient struct {
 	Amount float64
 	Emoji  rune
 	Unit   unitType
+	Check  bool
 }
 
 type unitType = string
@@ -29,6 +31,22 @@ const (
 	unt   unitType = "unit"
 )
 
+func getUnitInd(s string) int {
+	unitMap := map[string]int{
+		"g":    0,
+		"kg":   1,
+		"ml":   2,
+		"ltr":  3,
+		"unit": 4,
+	}
+
+	if _, exist := unitMap[s]; !exist {
+		panic(fmt.Errorf("unit %v does not exists", s))
+	}
+
+	return unitMap[s]
+}
+
 var unitVals = []string{grams, kg, ml, ltr, unt}
 
 func MakeIngredients() []ingredient {
@@ -36,7 +54,20 @@ func MakeIngredients() []ingredient {
 	return ingredients
 }
 
-func AddIngredients(name string, amount float64, emoji rune, unit unitType, ingredients []ingredient) []ingredient {
+func RemoveIngredient(i []ingredient, ind int) []ingredient {
+
+	newIngs := make([]ingredient, 0)
+	for nInd, nIng := range i {
+		if nInd != ind {
+			newIngs = append(newIngs, nIng)
+		}
+	}
+
+	return newIngs
+
+}
+
+func AddIngredients(name string, amount float64, emoji rune, unit unitType, check bool, ingredients []ingredient) []ingredient {
 
 	for i, val := range ingredients {
 		if val.Name == name {
@@ -50,6 +81,7 @@ func AddIngredients(name string, amount float64, emoji rune, unit unitType, ingr
 		amount,
 		emoji,
 		unit,
+		check,
 	}
 	ingredients = append(ingredients, i)
 	return ingredients
@@ -64,7 +96,7 @@ func MakeRecipe(name string, ings []ingredient) recipe {
 
 func AddRecipeIngredients(r recipe, ings []ingredient) []ingredient {
 	for _, i := range r.Ingredients {
-		ings = AddIngredients(i.Name, i.Amount, i.Emoji, i.Unit, ings)
+		ings = AddIngredients(i.Name, i.Amount, i.Emoji, i.Unit, i.Check, ings)
 	}
 
 	return ings
@@ -116,7 +148,9 @@ func ReadFile(ur fyne.URI) ([]ingredient, []recipe) {
 			i["Name"].(string),
 			i["Amount"].(float64),
 			rune(i["Emoji"].(float64)),
-			i["Unit"].(unitType), ings)
+			i["Unit"].(unitType),
+			i["Check"].(bool),
+			ings)
 
 	}
 
@@ -129,7 +163,10 @@ func ReadFile(ur fyne.URI) ([]ingredient, []recipe) {
 				ingMap["Name"].(string),
 				ingMap["Amount"].(float64),
 				rune(ingMap["Emoji"].(float64)),
-				ingMap["Unit"].(unitType), rIng)
+				ingMap["Unit"].(unitType),
+				ingMap["Check"].(bool),
+				rIng,
+			)
 
 		}
 

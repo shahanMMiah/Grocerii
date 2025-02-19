@@ -16,26 +16,62 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-type ingerdientEntry struct {
-	nameField  widget.Entry
-	checkFeild widget.Check
-	unitFeild  widget.Select
+func (t *tappableLabel) Tapped(_ *fyne.PointEvent) {
+	fmt.Println("I have been tapped")
 }
 
-func MakeIngEntries(ings []ingredient) []fyne.CanvasObject {
+func (t *tappableLabel) TappedSecondary(_ *fyne.PointEvent) {
+	t.CallBack()
+	/*
+		dialog.NewConfirm(
+			fmt.Sprintf("delete %v", t.Text),
+			fmt.Sprintf("delete %v", t.Text),
+			func(bool) {
+
+			},
+			t.Win)
+	*/
+}
+
+type tappableLabel struct {
+	widget.Label
+	EntryInd int
+	Win      fyne.Window
+	CallBack func() bool
+}
+
+func NewTabableLabel(t string, i int) *tappableLabel {
+	label := &tappableLabel{}
+	label.ExtendBaseWidget(label)
+	label.SetText(t)
+	label.EntryInd = i
+	label.Win = fyne.CurrentApp().NewWindow(fmt.Sprintf("%v %v window", label.Text, label.EntryInd))
+
+	return label
+}
+
+func MakeIngEntries(ings *[]ingredient) []fyne.CanvasObject {
 
 	cnvs := make([]fyne.CanvasObject, 0)
 
-	for _, i := range ings {
+	for ind, i := range *ings {
 
 		unitSel := widget.NewSelect(unitVals, func(v string) {})
-		nameEntry := widget.NewLabel(fmt.Sprintf("%v %c", i.Name, i.Emoji))
+		unitSel.SetSelectedIndex(getUnitInd(i.Unit))
+		nameEntry := NewTabableLabel(fmt.Sprintf("%v %c", i.Name, i.Emoji), ind)
 		unitEntry := widget.NewEntry()
 		unitEntry.SetText(fmt.Sprintf("%v", i.Amount))
 		checkBox := widget.NewCheck("", func(b bool) {})
+		checkBox.SetChecked(i.Check)
+
+		nameEntry.CallBack = func() bool {
+
+			*ings = RemoveIngredient(*ings, nameEntry.EntryInd)
+			return true
+		}
 
 		cont := container.New(
-			layout.NewCustomPaddedHBoxLayout(40),
+			layout.NewCustomPaddedHBoxLayout(3),
 			nameEntry,
 			unitEntry,
 			unitSel,
@@ -47,28 +83,21 @@ func MakeIngEntries(ings []ingredient) []fyne.CanvasObject {
 	return cnvs
 }
 
-func drawIngEntries(e []fyne.CanvasObject, c *fyne.Container) {
+func DrawIngEntries(e []fyne.CanvasObject, c *fyne.Container) {
 	c.RemoveAll()
 	for _, entry := range e {
 		c.Add(entry)
 	}
 }
 
-func setIngredientEntry(l fyne.CanvasObject, i *ingredient) {
+/*
+func SetupIngredientEntry(ings *[]ingredient, e []fyne.CanvasObject, c *fyne.Container) {
 
-	i.Name = l.(*fyne.Container).Objects[0].(*widget.Label).Text
-	n, err := strconv.ParseFloat(l.(*fyne.Container).Objects[1].(*widget.Entry).Text, 64)
-	if err != nil {
-		panic(err)
+	for _, entry := range e {
+		label := entry.(*fyne.Container).Objects[0].(*tappableLabel)
+
 	}
-	i.Amount = n
-	i.Unit = unitVals[l.(*fyne.Container).Objects[2].(*widget.Select).SelectedIndex()]
-
-	//l.(*fyne.Container).Objects[0].(*widget.Label).SetText(fmt.Sprintf("%v %c", i.Name, i.Emoji))
-	//l.(*fyne.Container).Objects[1].(*widget.Entry).SetText(fmt.Sprintf("%v", i.Amount))
-	//l.(*fyne.Container).Objects[2].(*widget.Select).SetSelectedIndex(0)
-
-}
+}*/
 
 func AddIngredientEntry(i *[]ingredient, c *fyne.Container, w fyne.Window) {
 
@@ -88,11 +117,7 @@ func AddIngredientEntry(i *[]ingredient, c *fyne.Container, w fyne.Window) {
 		forms,
 		func(bool) {
 			fmt.Println(formItem.Widget.(*widget.Entry).Text)
-
-			*i = AddIngredients(formItem.Widget.(*widget.Entry).Text, 0.0, rune(127816), unt, *i)
-			ingsEntries := MakeIngEntries(*i)
-			drawIngEntries(ingsEntries, c)
-
+			*i = AddIngredients(formItem.Widget.(*widget.Entry).Text, 0.0, rune(127816), unt, false, *i)
 		},
 		w,
 	)
@@ -101,52 +126,14 @@ func AddIngredientEntry(i *[]ingredient, c *fyne.Container, w fyne.Window) {
 
 }
 
-func buildUI(a fyne.App, w fyne.Window, i []ingredient, r []recipe, d fyne.URI) *fyne.Container {
+func UpdateIngEntries(i *[]ingredient, c *fyne.Container, e *[]fyne.CanvasObject) {
 
-	w.Resize(fyne.NewSize(500, 500))
-	dataUR := GetDataURI(a)
-	clock := widget.NewLabel("time: ")
-
-	go func() {
-		for t := range time.Tick(time.Second) {
-
-			h, m, s := t.Clock()
-			clock.SetText(fmt.Sprintf("time : %v : %v : %v", h, m, s))
+	for {
+		if len(*i) != len(*e) {
+			*e = MakeIngEntries(i)
+			DrawIngEntries(*e, c)
 		}
-	}()
-
-	ingContainer := container.NewVBox()
-	addIngsBtn := widget.NewToolbarAction(theme.ContentAddIcon(), func() { AddIngredientEntry(&i, ingContainer, w) })
-
-	top := widget.NewLabel(fmt.Sprintf("%v", dataUR.Path()))
-	ingsEntries := MakeIngEntries(i)
-
-	drawIngEntries(ingsEntries, ingContainer)
-
-	toolbar := widget.NewToolbar(addIngsBtn)
-	cont := container.NewVBox(
-		toolbar,
-		top,
-		clock,
-		ingContainer,
-	)
-
-	/*
-		list := widget.NewList(
-			func() int { return len(i) },
-			func() fyne.CanvasObject { return createEmptyEntry(&ingind, i) },
-			func(ind widget.ListItemID, o fyne.CanvasObject) {
-				setIngredientEntry(o, &i[ind])
-			})
-
-	*/
-	//list.Resize(fyne.NewSize(500, 100))
-	//cont.Add(list)
-	//saveBtn := widget.NewButton("save", func() { Testsave(list, i, r, d) })
-	//cont.Add(saveBtn)
-
-	w.SetContent(cont)
-	return cont
+	}
 
 }
 
@@ -183,8 +170,72 @@ func ReadData(ur fyne.URI) []byte {
 	return data.Content()
 }
 
-func Testsave(c *widget.List, i []ingredient, r []recipe, d fyne.URI) {
+func SaveIngEntries(c []fyne.CanvasObject, i *[]ingredient, r []recipe, d fyne.URI) {
 	fmt.Printf("saving data at %v", d.Path())
 
-	SaveData(d, i, r)
+	for ind, con := range c {
+
+		rCon := con.(*fyne.Container)
+
+		(*i)[ind].Name = rCon.Objects[0].(*tappableLabel).Text
+		n, err := strconv.ParseFloat(rCon.Objects[1].(*widget.Entry).Text, 64)
+
+		if err != nil {
+			panic(err)
+		}
+		(*i)[ind].Amount = n
+
+		unitInd := rCon.Objects[2].(*widget.Select).SelectedIndex()
+		if unitInd == -1 {
+			unitInd = 0
+		}
+
+		(*i)[ind].Unit = unitVals[unitInd]
+
+		(*i)[ind].Check = rCon.Objects[3].(*widget.Check).Checked
+
+	}
+
+	SaveData(d, *i, r)
+}
+
+func BuildUI(a fyne.App, w fyne.Window, i *[]ingredient, r []recipe, d fyne.URI) *fyne.Container {
+
+	//w.Resize(fyne.NewSize(500, 500))
+	clock := widget.NewLabel("time: ")
+
+	go func() {
+		for t := range time.Tick(time.Second) {
+
+			h, m, s := t.Clock()
+			clock.SetText(fmt.Sprintf("time : %v : %v : %v", h, m, s))
+		}
+	}()
+
+	ingContainer := container.NewVBox()
+
+	ingsEntries := MakeIngEntries(i)
+
+	DrawIngEntries(ingsEntries, ingContainer)
+
+	go UpdateIngEntries(i, ingContainer, &ingsEntries)
+
+	addIngsBtn := widget.NewToolbarAction(theme.ContentAddIcon(), func() { AddIngredientEntry(i, ingContainer, w) })
+
+	saveBtn := widget.NewToolbarAction(theme.DocumentSaveIcon(), func() { SaveIngEntries(ingsEntries, i, r, d) })
+	toolbar := widget.NewToolbar(addIngsBtn, saveBtn)
+	cont := container.NewVBox(
+		toolbar,
+		clock,
+		ingContainer,
+	)
+
+	ingTab := container.NewAppTabs(
+		container.NewTabItem("Ingredients", cont),
+		container.NewTabItem("Reipes", widget.NewLabel("temp")))
+
+	w.SetContent(ingTab)
+
+	return cont
+
 }

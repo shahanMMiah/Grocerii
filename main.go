@@ -4,6 +4,7 @@ package main
 import (
 	"fmt"
 
+	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 )
 
@@ -12,14 +13,15 @@ func main() {
 	a := app.NewWithID("Grocerii")
 
 	w := a.NewWindow("Grocerii App")
-
+	w.Resize(fyne.NewSize(393, 851))
 	dataUR := GetDataURI(a)
+	fmt.Println(dataUR.Path())
 
 	ings, recipes := ReadFile(dataUR)
 	fmt.Println(ings)
 	fmt.Println(recipes)
 
-	buildUI(a, w, ings, recipes, dataUR)
+	BuildUI(a, w, &ings, recipes, dataUR)
 
 	w.ShowAndRun()
 
@@ -135,5 +137,6 @@ func main() {
 			}
 
 		}
-	*/
+
 }
+*/
