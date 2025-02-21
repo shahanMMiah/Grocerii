@@ -114,11 +114,11 @@ func AddRecipe(name string, recipes []recipe) []recipe {
 	return recipes
 }
 
-func MakeRecipe(name string, ings []ingredient) recipe {
+func MakeRecipe(name string, ings []ingredient, check bool) recipe {
 	return recipe{
 		name,
 		ings,
-		false,
+		check,
 	}
 }
 
@@ -201,7 +201,7 @@ func ReadFile(ur fyne.URI) ([]ingredient, []recipe) {
 
 			}
 		}
-		recs = append(recs, MakeRecipe(r["Name"].(string), rIng))
+		recs = append(recs, MakeRecipe(r["Name"].(string), rIng, r["Check"].(bool)))
 
 	}
 

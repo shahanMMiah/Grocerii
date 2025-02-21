@@ -56,7 +56,7 @@ func MakeRecEntries(recs *[]recipe) []fyne.CanvasObject {
 			*recs = RemoveRecipes(*recs, nameEntry.EntryInd)
 			return true
 		}
-
+		checkBox.SetChecked(r.Check)
 		cont := container.New(
 			layout.NewCustomPaddedHBoxLayout(3),
 			nameEntry,
