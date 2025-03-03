@@ -4,24 +4,74 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-
-	"fyne.io/fyne/v2"
 )
 
-type item interface{}
+type Trie struct {
+	RootNode TrieNode
+}
 
-type recipe struct {
-	Name        string
-	Ingredients []ingredient
-	Check       bool
+type TrieNode struct {
+	Children map[rune]TrieNode
+	End      bool
+}
+
+func NewTrieNode() TrieNode {
+	return TrieNode{
+		Children: make(map[rune]TrieNode),
+		End:      false,
+	}
+}
+
+func (t *Trie) Add(s string) {
+
+	if t.RootNode.Children == nil {
+		t.RootNode = NewTrieNode()
+	}
+
+	tempLevel := &t.RootNode
+
+	for ind, chr := range s {
+		level, exist := tempLevel.Children[chr]
+		if !exist {
+			level = NewTrieNode()
+		}
+
+		if ind == len(s)-1 {
+			fmt.Println("found end")
+			level.End = true
+		}
+
+		tempLevel.Children[rune(chr)] = level
+		tempLevel = &level
+
+	}
+}
+
+type Groceitem interface {
+	Add(name string)
+	Remove(ind int)
+	Read(data []byte)
 }
 
 type ingredient struct {
-	Name   string
 	Amount float64
-	Emoji  rune
+	Name   string
 	Unit   unitType
 	Check  bool
+}
+
+type ingredients struct {
+	Ingredients []ingredient
+}
+
+type recipe struct {
+	RecipeIngs ingredients
+	Name       string
+	Check      bool
+}
+
+type recipes struct {
+	Recipes []recipe
 }
 
 type unitType = string
@@ -52,90 +102,101 @@ func getUnitInd(s string) int {
 
 var unitVals = []string{grams, kg, ml, ltr, unt}
 
-func MakeIngredients() []ingredient {
-	ingredients := make([]ingredient, 0)
-	return ingredients
+func (i *ingredients) Remove(ind int) {
+
+	newIngs := ingredients{}
+	fmt.Println(ind)
+
+	if ind > 0 {
+		newIngs.Ingredients = append(newIngs.Ingredients, i.Ingredients[0:ind]...)
+	}
+
+	newIngs.Ingredients = append(newIngs.Ingredients, i.Ingredients[ind+1:int(len(i.Ingredients))]...)
+
+	newIngs.Ingredients, i.Ingredients = i.Ingredients, newIngs.Ingredients
+
+	fmt.Println(i.Ingredients)
+
 }
 
-func RemoveIngredient(i []ingredient, ind int) []ingredient {
+func (r *recipes) Remove(ind int) {
+	newRec := recipes{}
 
-	newIngs := make([]ingredient, 0)
-	for nInd, nIng := range i {
-		if nInd != ind {
-			newIngs = append(newIngs, nIng)
+	if ind > 0 {
+		newRec.Recipes = append(newRec.Recipes, r.Recipes[0:ind]...)
+
+	}
+	newRec.Recipes = append(newRec.Recipes, r.Recipes[ind+1:int(len(r.Recipes))]...)
+
+	newRec.Recipes, r.Recipes = r.Recipes, newRec.Recipes
+}
+
+func (i *ingredients) Add(name string) {
+	i.Ingredients = append(i.Ingredients, ingredient{
+		Name:   name,
+		Amount: 1.0,
+		Unit:   unt,
+		Check:  false,
+	})
+}
+
+func (r *recipes) Add(name string) {
+	r.Recipes = append(r.Recipes, recipe{
+		Name:       name,
+		RecipeIngs: ingredients{},
+		Check:      false,
+	})
+}
+
+func (i *ingredients) Read(data []byte) {
+
+	i.Ingredients = []ingredient{}
+
+	jsnMap := make(map[string][]map[string]interface{})
+	json.Unmarshal(data, &jsnMap)
+
+	for ind, ing := range jsnMap["i"] {
+
+		i.Add(ing["Name"].(string))
+		i.Ingredients[ind].Amount = ing["Amount"].(float64)
+		i.Ingredients[ind].Unit = ing["Unit"].(unitType)
+		i.Ingredients[ind].Check = ing["Check"].(bool)
+	}
+
+}
+
+func (r *recipes) Read(data []byte) {
+	r.Recipes = []recipe{}
+
+	jsnMap := make(map[string][]map[string]interface{})
+	json.Unmarshal(data, &jsnMap)
+
+	for ind, rec := range jsnMap["r"] {
+
+		r.Add(rec["Name"].(string))
+		r.Recipes[ind].Check = rec["Check"].(bool)
+		r.Recipes[ind].RecipeIngs = ingredients{}
+
+		if rec["Ingredients"] != nil {
+			for ingInd, ing := range rec["Ingredients"].([]interface{}) {
+				ingMap := ing.(map[string]interface{})
+
+				r.Recipes[ind].RecipeIngs.Add(ingMap["Name"].(string))
+				r.Recipes[ind].RecipeIngs.Ingredients[ingInd].Amount = ingMap["Amount"].(float64)
+				r.Recipes[ind].RecipeIngs.Ingredients[ingInd].Unit = ingMap["Unit"].(unitType)
+				r.Recipes[ind].RecipeIngs.Ingredients[ingInd].Check = ingMap["Check"].(bool)
+
+			}
 		}
 	}
-
-	return newIngs
-
 }
 
-func RemoveRecipes(i []recipe, ind int) []recipe {
-
-	newRec := make([]recipe, 0)
-	for nInd, nIng := range i {
-		if nInd != ind {
-			newRec = append(newRec, nIng)
-		}
-	}
-
-	return newRec
-
-}
-
-func AddIngredients(name string, amount float64, emoji rune, unit unitType, check bool, ingredients []ingredient) []ingredient {
-
-	for i, val := range ingredients {
-		if val.Name == name {
-			ingredients[i].Amount += amount
-			return ingredients
-		}
-	}
-
-	i := ingredient{
-		name,
-		amount,
-		emoji,
-		unit,
-		check,
-	}
-	ingredients = append(ingredients, i)
-	return ingredients
-}
-
-func AddRecipe(name string, recipes []recipe) []recipe {
-
-	i := recipe{
-		Name:        name,
-		Ingredients: nil,
-	}
-
-	recipes = append(recipes, i)
-	return recipes
-}
-
-func MakeRecipe(name string, ings []ingredient, check bool) recipe {
-	return recipe{
-		name,
-		ings,
-		check,
-	}
-}
-
-func AddRecipeIngredients(r recipe, ings []ingredient) []ingredient {
-	for _, i := range r.Ingredients {
-		ings = AddIngredients(i.Name, i.Amount, i.Emoji, i.Unit, i.Check, ings)
-	}
-
-	return ings
-}
-
-func CreateJson(i []ingredient, r []recipe) []byte {
+func CreateJson(i ingredients, r recipes) []byte {
 
 	data := make(map[string]interface{}, 0)
 
-	data["i"] = i
-	data["r"] = r
+	data["i"] = i.Ingredients
+	data["r"] = r.Recipes
 
 	dataJson, err := json.Marshal(data)
 	if err != nil {
@@ -146,12 +207,12 @@ func CreateJson(i []ingredient, r []recipe) []byte {
 
 }
 
-func WriteFile(file string, i []ingredient, r []recipe) {
+func WriteFile(file string, i ingredients, r recipes) {
 
 	data := make(map[string]interface{}, 0)
 
-	data["i"] = i
-	data["r"] = r
+	data["i"] = i.Ingredients
+	data["r"] = r.Recipes
 
 	dataJson, err := json.Marshal(data)
 	if err != nil {
@@ -159,51 +220,4 @@ func WriteFile(file string, i []ingredient, r []recipe) {
 	}
 	os.WriteFile(file, dataJson, 0644)
 
-}
-
-func ReadFile(ur fyne.URI) ([]ingredient, []recipe) {
-
-	dataConent := ReadData(ur)
-	data := make(map[string][]map[string]interface{})
-	json.Unmarshal(dataConent, &data)
-
-	ings := MakeIngredients()
-	recs := make([]recipe, 0)
-
-	for _, i := range data["i"] {
-
-		ings = AddIngredients(
-			i["Name"].(string),
-			i["Amount"].(float64),
-			rune(i["Emoji"].(float64)),
-			i["Unit"].(unitType),
-			i["Check"].(bool),
-			ings)
-
-	}
-
-	for _, r := range data["r"] {
-		rIng := MakeIngredients()
-
-		if r["Ingredients"] != nil {
-
-			for _, ing := range r["Ingredients"].([]interface{}) {
-				ingMap := ing.(map[string]interface{})
-
-				rIng = AddIngredients(
-					ingMap["Name"].(string),
-					ingMap["Amount"].(float64),
-					rune(ingMap["Emoji"].(float64)),
-					ingMap["Unit"].(unitType),
-					ingMap["Check"].(bool),
-					rIng,
-				)
-
-			}
-		}
-		recs = append(recs, MakeRecipe(r["Name"].(string), rIng, r["Check"].(bool)))
-
-	}
-
-	return ings, recs
 }

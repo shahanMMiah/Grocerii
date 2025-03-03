@@ -17,9 +17,18 @@ func main() {
 	dataUR := GetDataURI(a)
 	fmt.Println(dataUR.Path())
 
-	ings, recipes := ReadFile(dataUR)
-	fmt.Println(ings)
-	fmt.Println(recipes)
+	ings := ingredients{}
+	recipes := recipes{}
+
+	test := Trie{}
+
+	test.Add("hello")
+	test.Add("hey")
+
+	fmt.Println(test)
+
+	ings.Read(ReadData(dataUR))
+	recipes.Read(ReadData(dataUR))
 
 	BuildUI(a, w, &ings, &recipes, dataUR)
 
