@@ -37,7 +37,7 @@ func (t *Trie) Add(s string) {
 		}
 
 		if ind == len(s)-1 {
-			fmt.Println("found end")
+
 			level.End = true
 		}
 
@@ -45,6 +45,30 @@ func (t *Trie) Add(s string) {
 		tempLevel = &level
 
 	}
+}
+
+func (t *Trie) Find(s string) (*TrieNode, bool) {
+
+	tempLevel := &t.RootNode
+	for ind, chr := range s {
+		level, exist := tempLevel.Children[chr]
+		fmt.Println(tempLevel.Children[chr])
+
+		if !exist && !level.End {
+			return tempLevel, false
+		}
+
+		tempLevel = &level
+
+		if ind == len(s)-1 {
+
+			return tempLevel, true
+		}
+
+	}
+
+	return tempLevel, false
+
 }
 
 type Groceitem interface {

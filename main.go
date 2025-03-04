@@ -25,7 +25,9 @@ func main() {
 	test.Add("hello")
 	test.Add("hey")
 
-	fmt.Println(test)
+	level, check := test.Find("he")
+
+	fmt.Println(check, level)
 
 	ings.Read(ReadData(dataUR))
 	recipes.Read(ReadData(dataUR))
