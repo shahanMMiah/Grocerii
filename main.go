@@ -24,10 +24,11 @@ func main() {
 
 	test.Add("hello")
 	test.Add("hey")
+	test.Add("plum")
 
-	level, check := test.Find("he")
+	words := test.AutoComplete("pl")
 
-	fmt.Println(check, level)
+	fmt.Println(words)
 
 	ings.Read(ReadData(dataUR))
 	recipes.Read(ReadData(dataUR))

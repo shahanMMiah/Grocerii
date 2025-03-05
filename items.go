@@ -11,6 +11,7 @@ type Trie struct {
 }
 
 type TrieNode struct {
+	char     rune
 	Children map[rune]TrieNode
 	End      bool
 }
@@ -18,6 +19,7 @@ type TrieNode struct {
 func NewTrieNode() TrieNode {
 	return TrieNode{
 		Children: make(map[rune]TrieNode),
+		char:     '0',
 		End:      false,
 	}
 }
@@ -34,6 +36,7 @@ func (t *Trie) Add(s string) {
 		level, exist := tempLevel.Children[chr]
 		if !exist {
 			level = NewTrieNode()
+			level.char = chr
 		}
 
 		if ind == len(s)-1 {
@@ -69,6 +72,48 @@ func (t *Trie) Find(s string) (*TrieNode, bool) {
 
 	return tempLevel, false
 
+}
+
+func (t *Trie) AutoComplete(s string) []string {
+	/*
+		check if string exisit and get current level
+		from current level
+		call get complete that returns list of existing words possible from level
+	*/
+
+	trieLevel, found := t.Find(s)
+
+	if !found {
+		return nil
+	}
+
+	return FindWords(trieLevel, []string{}, s[:len(s)-1])
+
+}
+
+func FindWords(tn *TrieNode, s []string, cs string) []string {
+	/*
+		from currnet level check children and and call get complete to get possible from level
+			if level is end add current cs + letter to return slice slice
+			for each of children letter, concat retured list from called get complete
+	*/
+
+	cs += string(tn.char)
+
+	lWords := make([]string, 0)
+	for _, node := range tn.Children {
+
+		lWords = append(lWords, FindWords(&node, s, cs)...)
+
+	}
+	s = append(s, lWords...)
+
+	if tn.End {
+		s = append(s, cs)
+	}
+
+	//fmt.Printf("at %v list is at %v \n", cs, s)
+	return s
 }
 
 type Groceitem interface {
