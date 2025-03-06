@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"unicode"
 )
 
 type Trie struct {
@@ -25,6 +26,8 @@ func NewTrieNode() TrieNode {
 }
 
 func (t *Trie) Add(s string) {
+
+	s = sanatize_string(s)
 
 	if t.RootNode.Children == nil {
 		t.RootNode = NewTrieNode()
@@ -51,6 +54,8 @@ func (t *Trie) Add(s string) {
 }
 
 func (t *Trie) Find(s string) (*TrieNode, bool) {
+
+	s = sanatize_string(s)
 
 	tempLevel := &t.RootNode
 	for ind, chr := range s {
@@ -80,7 +85,7 @@ func (t *Trie) AutoComplete(s string) []string {
 		from current level
 		call get complete that returns list of existing words possible from level
 	*/
-
+	s = sanatize_string(s)
 	trieLevel, found := t.Find(s)
 
 	if !found {
@@ -112,8 +117,20 @@ func FindWords(tn *TrieNode, s []string, cs string) []string {
 		s = append(s, cs)
 	}
 
-	//fmt.Printf("at %v list is at %v \n", cs, s)
+	fmt.Printf("at %v list is at %v \n", cs, s)
 	return s
+}
+
+func sanatize_string(s string) string {
+	var newString string
+	for _, chr := range s {
+
+		if unicode.IsLetter(chr) || unicode.IsDigit(chr) || unicode.IsSpace(chr) {
+			newString += string(chr)
+		}
+
+	}
+	return newString
 }
 
 type Groceitem interface {

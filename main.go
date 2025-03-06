@@ -24,9 +24,9 @@ func main() {
 
 	test.Add("hello")
 	test.Add("hey")
-	test.Add("plum")
+	test.Add("plum🍩 and bread")
 
-	words := test.AutoComplete("pl")
+	words := test.AutoComplete("plum")
 
 	fmt.Println(words)
 
