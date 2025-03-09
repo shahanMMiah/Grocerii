@@ -60,7 +60,7 @@ func (t *Trie) Find(s string) (*TrieNode, bool) {
 	tempLevel := &t.RootNode
 	for ind, chr := range s {
 		level, exist := tempLevel.Children[chr]
-		fmt.Println(tempLevel.Children[chr])
+		//fmt.Println(tempLevel.Children[chr])
 
 		if !exist && !level.End {
 			return tempLevel, false
@@ -117,7 +117,7 @@ func FindWords(tn *TrieNode, s []string, cs string) []string {
 		s = append(s, cs)
 	}
 
-	fmt.Printf("at %v list is at %v \n", cs, s)
+	//fmt.Printf("at %v list is at %v \n", cs, s)
 	return s
 }
 
@@ -191,7 +191,7 @@ var unitVals = []string{grams, kg, ml, ltr, unt}
 func (i *ingredients) Remove(ind int) {
 
 	newIngs := ingredients{}
-	fmt.Println(ind)
+	//fmt.Println(ind)
 
 	if ind > 0 {
 		newIngs.Ingredients = append(newIngs.Ingredients, i.Ingredients[0:ind]...)
@@ -201,7 +201,7 @@ func (i *ingredients) Remove(ind int) {
 
 	newIngs.Ingredients, i.Ingredients = i.Ingredients, newIngs.Ingredients
 
-	fmt.Println(i.Ingredients)
+	//fmt.Println(i.Ingredients)
 
 }
 

@@ -2,8 +2,6 @@
 package main
 
 import (
-	"fmt"
-
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 )
@@ -15,20 +13,48 @@ func main() {
 	w := a.NewWindow("Grocerii App")
 	w.Resize(fyne.NewSize(393, 851))
 	dataUR := GetDataURI(a)
-	fmt.Println(dataUR.Path())
+	//fmt.Println(dataUR.Path())
 
 	ings := ingredients{}
 	recipes := recipes{}
+	/*
+		itms := []string{
+			"olives", "cherry toms", "orecchiette", "soft cheese", "spinach", "tofu", "red pepper",
+			"noodles", "coconut cream", "coslaw mix", "cucumber", "carrot", "lettuce", "chikn", "bulger", "courgete",
+			"onion", "capers", "aubergine"}
 
-	test := Trie{}
+		for _, itm := range itms {
+			ings.Add(itm)
+		}
 
-	test.Add("hello")
-	test.Add("hey")
-	test.Add("plum🍩 and bread")
+		recs := []string{
+			"sticky chilly tofu bowl bosh",
+			"tomato olive orecchiette",
+			"coconut curry noodles tofu",
+			"bang bang chikn rice salad",
+			"turkish style bulger",
+			"aubergine caponato orzo",
+		}
 
-	words := test.AutoComplete("plum")
+		for _, rcs := range recs {
+			recipes.Add(rcs)
+		}
 
-	fmt.Println(words)
+		WriteFile("data.json", ings, recipes)
+
+		// trie test
+		test := Trie{}
+
+		test.Add("hello")
+		test.Add("hey")
+		test.Add("plum🍩 and bread")
+
+		words := test.AutoComplete("plum")
+
+		//fmt.Println(words)
+
+		WriteFile("test.json", ings, recipes)
+	*/
 
 	ings.Read(ReadData(dataUR))
 	recipes.Read(ReadData(dataUR))
@@ -99,7 +125,7 @@ func main() {
 		recipes = append(recipes, MakeRecipe("test", rIngs))
 
 		for {
-			fmt.Println("which command? -- add, view, save, read ")
+			//fmt.Println("which command? -- add, view, save, read ")
 
 			reader := bufio.NewReader(os.Stdin)
 			text, _ := reader.ReadString('\n')
@@ -108,13 +134,13 @@ func main() {
 			switch text {
 			case "add":
 
-				fmt.Println("name?")
+				//fmt.Println("name?")
 
 				reader = bufio.NewReader(os.Stdin)
 				name, _ := reader.ReadString('\n')
 				name = strings.Replace(name, "\n", "", -1)
 
-				fmt.Println("amount?")
+				//fmt.Println("amount?")
 
 				reader = bufio.NewReader(os.Stdin)
 				amountStr, _ := reader.ReadString('\n')
@@ -126,9 +152,9 @@ func main() {
 
 			case "view":
 
-				fmt.Println("ingredient list:")
+				//fmt.Println("ingredient list:")
 				for _, i := range ings {
-					fmt.Printf("%v %c - amount: %v %v \n", i.Name, i.Emoji, i.Unit, i.Amount)
+					//fmt.Printf("%v %c - amount: %v %v \n", i.Name, i.Emoji, i.Unit, i.Amount)
 
 				}
 
@@ -136,13 +162,13 @@ func main() {
 				WriteFile("test.json", ings, recipes)
 
 			case "read":
-				fmt.Println("file name?")
+				//fmt.Println("file name?")
 				reader = bufio.NewReader(os.Stdin)
 				file, _ := reader.ReadString('\n')
 				file = strings.Replace(file, "\n", "", -1)
 
 				ings, recipes = ReadFile(file)
-				fmt.Printf("read in %v and %v", ings, recipes)
+				//fmt.Printf("read in %v and %v", ings, recipes)
 
 			default:
 				return

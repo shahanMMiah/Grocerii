@@ -28,7 +28,7 @@ func (t *tappableLabel) TappedSecondary(_ *fyne.PointEvent) {
 }
 
 type tappableLabel struct {
-	widget.Label
+	widget.RichText
 	EntryInd int
 	Win      fyne.Window
 	CallBack func() bool
@@ -37,18 +37,33 @@ type tappableLabel struct {
 func NewTabableLabel(t string, i int) *tappableLabel {
 	label := &tappableLabel{}
 	label.ExtendBaseWidget(label)
-	label.SetText(t)
-	label.EntryInd = i
-	label.Win = fyne.CurrentApp().NewWindow(fmt.Sprintf("%v %v window", label.Text, label.EntryInd))
+	label.Wrapping = fyne.TextWrapOff
+	label.Scroll = 3
+	label.Segments = append(label.Segments, &widget.TextSegment{
+		Style: widget.RichTextStyleEmphasis,
+		Text:  t})
 
+	label.EntryInd = i
+	label.Win = fyne.CurrentApp().NewWindow(fmt.Sprintf("%v %v window", label.Segments[0].(*widget.TextSegment).Text, label.EntryInd))
 	return label
+}
+
+func (t *tappableLabel) SetText(s string) {
+	t.Segments[0].(*widget.TextSegment).Text = s
+}
+
+func (t *tappableLabel) GetText() string {
+	return t.Segments[0].(*widget.TextSegment).Text
 }
 
 func MakeRecEntries(recs *recipes) []fyne.CanvasObject {
 	cnvs := make([]fyne.CanvasObject, 0)
 	for ind, r := range recs.Recipes {
 		nameEntry := NewTabableLabel(r.Name, ind)
-		checkBox := widget.NewCheck("", func(b bool) {})
+
+		checkBox := widget.NewCheck("", func(b bool) {
+
+		})
 
 		nameEntry.CallBack = func() bool {
 
@@ -78,7 +93,19 @@ func MakeIngEntries(ings *ingredients) []fyne.CanvasObject {
 		nameEntry := NewTabableLabel(fmt.Sprintf("%v", i.Name), ind)
 		unitEntry := widget.NewEntry()
 		unitEntry.SetText(fmt.Sprintf("%v", i.Amount))
-		checkBox := widget.NewCheck("", func(b bool) {})
+		checkBox := widget.NewCheck("", func(b bool) {
+
+			if true {
+				if nameEntry.Segments[0].(*widget.TextSegment).Style.ColorName == theme.ColorNameForeground {
+					nameEntry.Segments[0].(*widget.TextSegment).Style.ColorName = theme.ColorNameDisabled
+				} else {
+					nameEntry.Segments[0].(*widget.TextSegment).Style.ColorName = theme.ColorNameForeground
+					nameEntry.Refresh()
+
+				}
+				nameEntry.Refresh()
+			}
+		})
 		checkBox.SetChecked(i.Check)
 
 		nameEntry.CallBack = func() bool {
@@ -89,10 +116,10 @@ func MakeIngEntries(ings *ingredients) []fyne.CanvasObject {
 
 		cont := container.New(
 			layout.NewCustomPaddedHBoxLayout(3),
+			checkBox,
 			nameEntry,
 			unitEntry,
 			unitSel,
-			checkBox,
 		)
 
 		cnvs = append(cnvs, cont)
@@ -134,7 +161,7 @@ func AddIngredientEntry(i *ingredients, c *fyne.Container, w fyne.Window) {
 		forms,
 		func(c bool) {
 			if c {
-				fmt.Println(formItem.Widget.(*widget.Entry).Text)
+				////fmt.Println(formItem.Widget.(*widget.Entry).Text)
 				i.Add(formItem.Widget.(*widget.Entry).Text)
 
 			}
@@ -225,7 +252,7 @@ func ReadData(ur fyne.URI) []byte {
 	data, rErr := storage.LoadResourceFromURI(ur)
 
 	if rErr != nil {
-		fmt.Println("no data file found using default")
+		//fmt.Println("no data file found using default")
 		data = resourceDataJson
 	}
 
@@ -233,41 +260,41 @@ func ReadData(ur fyne.URI) []byte {
 }
 
 func GetIngEntriesData(c []fyne.CanvasObject, i *ingredients, d fyne.URI) {
-	fmt.Printf("saving data at %v", d.Path())
+	//fmt.Printf("saving data at %v", d.Path())
 
 	for ind, con := range c {
 
 		rCon := con.(*fyne.Container)
 
-		i.Ingredients[ind].Name = rCon.Objects[0].(*tappableLabel).Text
-		n, err := strconv.ParseFloat(rCon.Objects[1].(*widget.Entry).Text, 64)
+		i.Ingredients[ind].Name = rCon.Objects[1].(*tappableLabel).GetText()
+		n, err := strconv.ParseFloat(rCon.Objects[2].(*widget.Entry).Text, 64)
 
 		if err != nil {
 			panic(err)
 		}
 		i.Ingredients[ind].Amount = n
 
-		unitInd := rCon.Objects[2].(*widget.Select).SelectedIndex()
+		unitInd := rCon.Objects[3].(*widget.Select).SelectedIndex()
 		if unitInd == -1 {
 			unitInd = 0
 		}
 
 		i.Ingredients[ind].Unit = unitVals[unitInd]
 
-		i.Ingredients[ind].Check = rCon.Objects[3].(*widget.Check).Checked
+		i.Ingredients[ind].Check = rCon.Objects[0].(*widget.Check).Checked
 
 	}
 
 }
 
 func GetRecEntriesData(c []fyne.CanvasObject, r *recipes, d fyne.URI) {
-	fmt.Printf("saving data at %v", d.Path())
+	//fmt.Printf("saving data at %v", d.Path())
 
 	for ind, con := range c {
 
 		rCon := con.(*fyne.Container)
 
-		r.Recipes[ind].Name = rCon.Objects[0].(*tappableLabel).Text
+		r.Recipes[ind].Name = rCon.Objects[0].(*tappableLabel).GetText()
 
 		r.Recipes[ind].Check = rCon.Objects[1].(*widget.Check).Checked
 
