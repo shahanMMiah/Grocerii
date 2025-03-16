@@ -35,24 +35,24 @@ func main() {
 itms := []string{
 			"olives", "cherry toms", "orecchiette", "soft cheese", "spinach", "tofu", "red pepper",
 			"noodles", "coconut cream", "coslaw mix", "cucumber", "carrot", "lettuce", "chikn", "bulger", "courgete",
-			"onion", "capers", "aubergine"}
+			"onion", "capers", "aubergine", "cereal", "milk", "parmesan cheese"}
 
-		for _, itm := range itms {
-			ings.Add(itm)
-		}
+for _, itm := range itms {
+	ings.Add(itm)
+}
 
-		recs := []string{
-			"sticky chilly tofu bowl bosh",
-			"tomato olive orecchiette",
-			"coconut curry noodles tofu",
-			"bang bang chikn rice salad",
-			"turkish style bulger",
-			"aubergine caponato orzo",
-		}
+recs := []string{
+	"sticky chilly tofu bowl bosh",
+	"tomato olive orecchiette",
+	"coconut curry noodles tofu",
+	"bang bang chikn rice salad",
+	"turkish style bulger",
+	"aubergine caponato orzo",
+}
 
-		for _, rcs := range recs {
-			recipes.Add(rcs)
-		}
+for _, rcs := range recs {
+	recipes.Add(rcs)
+}
 
 		WriteFile("data.json", ings, recipes)
 
