@@ -1,4 +1,6 @@
 //go:generate fyne bundle -o bundled.go data.json
+
+// fyne package -os android -appID .com.test.grocerii
 package main
 
 import (
@@ -13,12 +15,24 @@ func main() {
 	w := a.NewWindow("Grocerii App")
 	w.Resize(fyne.NewSize(393, 851))
 	dataUR := GetDataURI(a)
-	//fmt.Println(dataUR.Path())
 
-	ings := ingredients{}
+	ings := ingredients{Update: false}
 	recipes := recipes{}
-	/*
-		itms := []string{
+
+	ings.Read(ReadData(dataUR))
+	recipes.Read(ReadData(dataUR))
+
+	//fmt.Println(ingSearch)
+
+	BuildUI(a, w, &ings, &recipes, dataUR)
+
+	w.ShowAndRun()
+
+}
+
+/*
+--------------------------------- make default JSON  -------------------------------
+itms := []string{
 			"olives", "cherry toms", "orecchiette", "soft cheese", "spinach", "tofu", "red pepper",
 			"noodles", "coconut cream", "coslaw mix", "cucumber", "carrot", "lettuce", "chikn", "bulger", "courgete",
 			"onion", "capers", "aubergine"}
@@ -42,31 +56,21 @@ func main() {
 
 		WriteFile("data.json", ings, recipes)
 
-		// trie test
-		test := Trie{}
+--------------------------------- trie test  -------------------------------
 
-		test.Add("hello")
-		test.Add("hey")
-		test.Add("plum🍩 and bread")
+test := Trie{}
 
-		words := test.AutoComplete("plum")
+test.Add("hello")
+test.Add("hey")
+test.Add("plum🍩 and bread")
 
-		//fmt.Println(words)
+words := test.AutoComplete("plum")
 
-		WriteFile("test.json", ings, recipes)
-	*/
+//fmt.Println(words)
 
-	ings.Read(ReadData(dataUR))
-	recipes.Read(ReadData(dataUR))
 
-	BuildUI(a, w, &ings, &recipes, dataUR)
 
-	w.ShowAndRun()
-
-}
-
-/*
-
+--------------------------------- CLI -------------------------------
 import (
 	"fmt"
 	"time"

@@ -14,7 +14,53 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-func (t *tappableLabel) TappedSecondary(_ *fyne.PointEvent) {
+// ----------- Search Bar --------------
+type SearchEntry struct {
+	widget.Entry
+	Update bool
+}
+
+func (s *SearchEntry) HighlightSearch(objs *[]fyne.CanvasObject, items Groceitem, t *Trie) {
+
+	found := t.AutoComplete(s.Text)
+	list := *objs
+
+	if _, ok := items.(*ingredients); ok {
+		for iter := range list {
+			nameEntry := list[iter].(*fyne.Container).Objects[1].(*TappableLabel)
+			nameEntry.Segments[0].(*widget.TextSegment).Style.ColorName = nameEntry.Color
+
+			for _, f := range found {
+				if f == nameEntry.Segments[0].(*widget.TextSegment).Text {
+
+					nameEntry.Segments[0].(*widget.TextSegment).Style.ColorName = theme.ColorNameError
+				}
+
+			}
+			nameEntry.Refresh()
+
+		}
+	}
+
+}
+
+func NewSearchEntry() *SearchEntry {
+	entry := &SearchEntry{}
+	entry.ExtendBaseWidget(entry)
+	return entry
+}
+
+// ----------- tapable label --------------
+
+type TappableLabel struct {
+	widget.RichText
+	EntryInd int
+	Win      fyne.Window
+	CallBack func() bool
+	Color    fyne.ThemeColorName
+}
+
+func (t *TappableLabel) TappedSecondary(_ *fyne.PointEvent) {
 	t.CallBack()
 	/*
 		dialog.NewConfirm(
@@ -27,15 +73,8 @@ func (t *tappableLabel) TappedSecondary(_ *fyne.PointEvent) {
 	*/
 }
 
-type tappableLabel struct {
-	widget.RichText
-	EntryInd int
-	Win      fyne.Window
-	CallBack func() bool
-}
-
-func NewTabableLabel(t string, i int) *tappableLabel {
-	label := &tappableLabel{}
+func NewTabableLabel(t string, i int) *TappableLabel {
+	label := &TappableLabel{}
 	label.ExtendBaseWidget(label)
 	label.Wrapping = fyne.TextWrapOff
 	label.Scroll = 3
@@ -44,17 +83,20 @@ func NewTabableLabel(t string, i int) *tappableLabel {
 		Text:  t})
 
 	label.EntryInd = i
+	label.Color = theme.ColorNameForeground
 	label.Win = fyne.CurrentApp().NewWindow(fmt.Sprintf("%v %v window", label.Segments[0].(*widget.TextSegment).Text, label.EntryInd))
 	return label
 }
 
-func (t *tappableLabel) SetText(s string) {
+func (t *TappableLabel) SetText(s string) {
 	t.Segments[0].(*widget.TextSegment).Text = s
 }
 
-func (t *tappableLabel) GetText() string {
+func (t *TappableLabel) GetText() string {
 	return t.Segments[0].(*widget.TextSegment).Text
 }
+
+// ----------- entries --------------
 
 func MakeRecEntries(recs *recipes) []fyne.CanvasObject {
 	cnvs := make([]fyne.CanvasObject, 0)
@@ -95,16 +137,19 @@ func MakeIngEntries(ings *ingredients) []fyne.CanvasObject {
 		unitEntry.SetText(fmt.Sprintf("%v", i.Amount))
 		checkBox := widget.NewCheck("", func(b bool) {
 
-			if true {
-				if nameEntry.Segments[0].(*widget.TextSegment).Style.ColorName == theme.ColorNameForeground {
-					nameEntry.Segments[0].(*widget.TextSegment).Style.ColorName = theme.ColorNameDisabled
-				} else {
-					nameEntry.Segments[0].(*widget.TextSegment).Style.ColorName = theme.ColorNameForeground
-					nameEntry.Refresh()
+			if b {
+				nameEntry.Color = theme.ColorNameDisabled
+				ings.Ingredients[ind].Check = true
 
-				}
-				nameEntry.Refresh()
+			} else {
+				nameEntry.Color = theme.ColorNameForeground
+				ings.Ingredients[ind].Check = false
+
 			}
+
+			nameEntry.Segments[0].(*widget.TextSegment).Style.ColorName = nameEntry.Color
+			ings.Update = true
+
 		})
 		checkBox.SetChecked(i.Check)
 
@@ -133,15 +178,6 @@ func DrawEntries(e []fyne.CanvasObject, c *fyne.Container) {
 		c.Add(entry)
 	}
 }
-
-/*
-func SetupIngredientEntry(ings *[]ingredient, e []fyne.CanvasObject, c *fyne.Container) {
-
-	for _, entry := range e {
-		label := entry.(*fyne.Container).Objects[0].(*tappableLabel)
-
-	}
-}*/
 
 func AddIngredientEntry(i *ingredients, c *fyne.Container, w fyne.Window) {
 
@@ -203,17 +239,21 @@ func AddRecipeEntry(r *recipes, c *fyne.Container, w fyne.Window) {
 
 }
 
-func UpdateIngEntries(i *ingredients, c *fyne.Container, e *[]fyne.CanvasObject) {
+func UpdateIngEntries(i *ingredients, c *fyne.Container, e *[]fyne.CanvasObject, t *Trie) {
 
 	for {
-		if len(i.Ingredients) != len(*e) {
+		if len(i.Ingredients) != len(*e) || i.Update {
+			t.build(i)
+			i.CheckSort()
 			*e = MakeIngEntries(i)
 			DrawEntries(*e, c)
 			c.Refresh()
+			i.Update = false
 		}
 	}
 
 }
+
 func UpdateRecEntries(r *recipes, c *fyne.Container, e *[]fyne.CanvasObject) {
 
 	for {
@@ -225,6 +265,8 @@ func UpdateRecEntries(r *recipes, c *fyne.Container, e *[]fyne.CanvasObject) {
 	}
 
 }
+
+// ----------- data IO --------------
 
 func GetDataURI(a fyne.App) fyne.URI {
 	dataURI, urErr := storage.Child(a.Storage().RootURI(), "data.json")
@@ -266,7 +308,7 @@ func GetIngEntriesData(c []fyne.CanvasObject, i *ingredients, d fyne.URI) {
 
 		rCon := con.(*fyne.Container)
 
-		i.Ingredients[ind].Name = rCon.Objects[1].(*tappableLabel).GetText()
+		i.Ingredients[ind].Name = rCon.Objects[1].(*TappableLabel).GetText()
 		n, err := strconv.ParseFloat(rCon.Objects[2].(*widget.Entry).Text, 64)
 
 		if err != nil {
@@ -294,7 +336,7 @@ func GetRecEntriesData(c []fyne.CanvasObject, r *recipes, d fyne.URI) {
 
 		rCon := con.(*fyne.Container)
 
-		r.Recipes[ind].Name = rCon.Objects[0].(*tappableLabel).GetText()
+		r.Recipes[ind].Name = rCon.Objects[0].(*TappableLabel).GetText()
 
 		r.Recipes[ind].Check = rCon.Objects[1].(*widget.Check).Checked
 
@@ -302,12 +344,20 @@ func GetRecEntriesData(c []fyne.CanvasObject, r *recipes, d fyne.URI) {
 
 }
 
+// ----------- Main --------------
+
 func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) {
 	// ingredients
+	ingSearch := Trie{}
+	recSearch := Trie{}
+
+	ingSearch.build(i)
+	recSearch.build(r)
+
 	ingContainer := container.NewVBox()
 	ingsEntries := MakeIngEntries(i)
 	DrawEntries(ingsEntries, ingContainer)
-	go UpdateIngEntries(i, ingContainer, &ingsEntries)
+	go UpdateIngEntries(i, ingContainer, &ingsEntries, &ingSearch)
 
 	addIngsBtn := widget.NewToolbarAction(theme.ContentAddIcon(), func() { AddIngredientEntry(i, ingContainer, w) })
 
@@ -316,9 +366,18 @@ func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) 
 		SaveData(d, i, r)
 	})
 	ingToolbar := widget.NewToolbar(addIngsBtn, ingSaveBtn)
+
+	ingSearchBar := NewSearchEntry()
+
+	ingSearchBar.OnChanged = func(string) {
+		ingSearchBar.HighlightSearch(&ingsEntries, i, &ingSearch)
+	}
+
+	//go HighlightSearch(&ingsEntries, i, &ingSearch, ingSearchBar)
+
 	ingMainCont := container.NewVBox(
 		ingToolbar,
-
+		ingSearchBar,
 		ingContainer,
 	)
 	ingScroll := container.NewVScroll(ingMainCont)
