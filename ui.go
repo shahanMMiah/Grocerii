@@ -25,21 +25,41 @@ func (s *SearchEntry) HighlightSearch(objs *[]fyne.CanvasObject, items Groceitem
 	found := t.AutoComplete(s.Text)
 	list := *objs
 
-	if _, ok := items.(*ingredients); ok {
+	if ings, ok := items.(*ingredients); ok {
 		for iter := range list {
 			nameEntry := list[iter].(*fyne.Container).Objects[1].(*TappableLabel)
-			nameEntry.Segments[0].(*widget.TextSegment).Style.ColorName = nameEntry.Color
+			ings.Ingredients[iter].Highlighted = false
 
 			for _, f := range found {
 				if f == nameEntry.Segments[0].(*widget.TextSegment).Text {
 
-					nameEntry.Segments[0].(*widget.TextSegment).Style.ColorName = theme.ColorNameError
+					ings.Ingredients[iter].Highlighted = true
 				}
 
 			}
 			nameEntry.Refresh()
 
 		}
+		ings.Update = true
+
+	}
+
+}
+
+func DrawHighlights(ings *ingredients, objs *[]fyne.CanvasObject) {
+
+	list := *objs
+
+	for iter := range list {
+		nameEntry := list[iter].(*fyne.Container).Objects[1].(*TappableLabel)
+		nameEntry.Segments[0].(*widget.TextSegment).Style.ColorName = nameEntry.Color
+
+		if ings.Ingredients[iter].Highlighted {
+			nameEntry.Segments[0].(*widget.TextSegment).Style.ColorName = theme.ColorNameError
+
+		}
+		nameEntry.Refresh()
+
 	}
 
 }
@@ -174,6 +194,14 @@ func MakeIngEntries(ings *ingredients) []fyne.CanvasObject {
 
 func DrawEntries(e []fyne.CanvasObject, c *fyne.Container) {
 	c.RemoveAll()
+	/*
+		list := widget.NewList(
+			func() int { return len(e) },
+			func() { return
+
+			}
+		)
+	*/
 	for _, entry := range e {
 		c.Add(entry)
 	}
@@ -245,8 +273,10 @@ func UpdateIngEntries(i *ingredients, c *fyne.Container, e *[]fyne.CanvasObject,
 		if len(i.Ingredients) != len(*e) || i.Update {
 			t.build(i)
 			i.CheckSort()
+			i.HighlightSort()
 			*e = MakeIngEntries(i)
 			DrawEntries(*e, c)
+			DrawHighlights(i, e)
 			c.Refresh()
 			i.Update = false
 		}
@@ -373,14 +403,16 @@ func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) 
 		ingSearchBar.HighlightSearch(&ingsEntries, i, &ingSearch)
 	}
 
-	//go HighlightSearch(&ingsEntries, i, &ingSearch, ingSearchBar)
-
 	ingMainCont := container.NewVBox(
 		ingToolbar,
 		ingSearchBar,
-		ingContainer,
 	)
-	ingScroll := container.NewVScroll(ingMainCont)
+
+	ingScroll := container.NewVScroll(ingContainer)
+	ingScroll.SetMinSize(
+		fyne.NewSize(WINSIZEX, WINSIZEY-120))
+
+	ingMainCont.Add(ingScroll)
 
 	// recipes
 	recContainer := container.NewVBox()
@@ -404,7 +436,7 @@ func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) 
 	recScroll := container.NewVScroll(recMainCont)
 
 	Tab := container.NewAppTabs(
-		container.NewTabItem("Ingredients", ingScroll),
+		container.NewTabItem("Ingredients", ingMainCont),
 		container.NewTabItem("Reipes", recScroll))
 
 	w.SetContent(Tab)

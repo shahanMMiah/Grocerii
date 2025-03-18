@@ -8,12 +8,17 @@ import (
 	"fyne.io/fyne/v2/app"
 )
 
+const (
+	WINSIZEX float32 = 393
+	WINSIZEY float32 = 750
+)
+
 func main() {
 
 	a := app.NewWithID("Grocerii")
 
 	w := a.NewWindow("Grocerii App")
-	w.Resize(fyne.NewSize(393, 851))
+	w.Resize(fyne.NewSize(WINSIZEX, WINSIZEY))
 	dataUR := GetDataURI(a)
 
 	ings := ingredients{Update: false}
