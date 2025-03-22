@@ -1,6 +1,6 @@
 //go:generate fyne bundle -o bundled.go data.json
 
-// fyne package -os android -appID .com.test.grocerii
+// fyne package -os android -appID .com.test.groceriiTest
 package main
 
 import (
