@@ -23,6 +23,7 @@ type SearchEntry struct {
 func (s *SearchEntry) HighlightSearch(objs *[]fyne.CanvasObject, items Groceitem, t *Trie) {
 
 	found := t.AutoComplete(s.Text)
+
 	list := *objs
 
 	if ings, ok := items.(*ingredients); ok {
@@ -44,22 +45,55 @@ func (s *SearchEntry) HighlightSearch(objs *[]fyne.CanvasObject, items Groceitem
 
 	}
 
-}
+	if recs, ok := items.(*recipes); ok {
 
-func DrawHighlights(ings *ingredients, objs *[]fyne.CanvasObject) {
+		for iter := range list {
+			nameEntry := list[iter].(*fyne.Container).Objects[1].(*TappableLabel)
+			recs.Recipes[iter].Highlighted = false
 
-	list := *objs
+			for _, f := range found {
+				if f == nameEntry.Segments[0].(*widget.TextSegment).Text {
 
-	for iter := range list {
-		nameEntry := list[iter].(*fyne.Container).Objects[1].(*TappableLabel)
-		nameEntry.Segments[0].(*widget.TextSegment).Style.ColorName = nameEntry.Color
+					recs.Recipes[iter].Highlighted = true
+				}
 
-		if ings.Ingredients[iter].Highlighted {
-			nameEntry.Segments[0].(*widget.TextSegment).Style.ColorName = theme.ColorNameError
+			}
+			nameEntry.Refresh()
 
 		}
-		nameEntry.Refresh()
+		recs.Update = true
+	}
 
+}
+
+func DrawHighlights(items Groceitem, objs *[]fyne.CanvasObject) {
+
+	list := *objs
+	if ings, ok := items.(*ingredients); ok {
+		for iter := range list {
+			nameEntry := list[iter].(*fyne.Container).Objects[1].(*TappableLabel)
+			nameEntry.Segments[0].(*widget.TextSegment).Style.ColorName = nameEntry.Color
+
+			if ings.Ingredients[iter].Highlighted {
+				nameEntry.Segments[0].(*widget.TextSegment).Style.ColorName = theme.ColorNameError
+
+			}
+			nameEntry.Refresh()
+
+		}
+	}
+	if recs, ok := items.(*recipes); ok {
+		for iter := range list {
+			nameEntry := list[iter].(*fyne.Container).Objects[1].(*TappableLabel)
+			nameEntry.Segments[0].(*widget.TextSegment).Style.ColorName = nameEntry.Color
+
+			if recs.Recipes[iter].Highlighted {
+				nameEntry.Segments[0].(*widget.TextSegment).Style.ColorName = theme.ColorNameError
+
+			}
+			nameEntry.Refresh()
+
+		}
 	}
 
 }
@@ -135,8 +169,8 @@ func MakeRecEntries(recs *recipes) []fyne.CanvasObject {
 		checkBox.SetChecked(r.Check)
 		cont := container.New(
 			layout.NewCustomPaddedHBoxLayout(3),
-			nameEntry,
 			checkBox,
+			nameEntry,
 		)
 		cnvs = append(cnvs, cont)
 	}
@@ -331,13 +365,18 @@ func UpdateIngEntries(i *ingredients, c *fyne.Container, e *[]fyne.CanvasObject,
 
 }
 
-func UpdateRecEntries(r *recipes, c *fyne.Container, e *[]fyne.CanvasObject) {
+func UpdateRecEntries(r *recipes, c *fyne.Container, e *[]fyne.CanvasObject, t *Trie) {
 
 	for {
-		if len(r.Recipes) != len(*e) {
+		if len(r.Recipes) != len(*e) || r.Update {
+			t.build(r)
+			r.HighlightSort()
 			*e = MakeRecEntries(r)
 			DrawEntries(*e, c, r)
+			DrawHighlights(r, e)
+
 			c.Refresh()
+			r.Update = false
 		}
 	}
 
@@ -413,9 +452,9 @@ func GetRecEntriesData(c []fyne.CanvasObject, r *recipes, d fyne.URI) {
 
 		rCon := con.(*fyne.Container)
 
-		r.Recipes[ind].Name = rCon.Objects[0].(*TappableLabel).GetText()
+		r.Recipes[ind].Name = rCon.Objects[1].(*TappableLabel).GetText()
 
-		r.Recipes[ind].Check = rCon.Objects[1].(*widget.Check).Checked
+		r.Recipes[ind].Check = rCon.Objects[0].(*widget.Check).Checked
 
 	}
 
@@ -430,6 +469,8 @@ func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) 
 
 	ingSearch.build(i)
 	recSearch.build(r)
+
+	//fmt.Println(recSearch)
 	//listObj := &widget.List{}
 
 	ingContainer := container.NewStack()
@@ -466,7 +507,7 @@ func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) 
 	recContainer := container.NewStack()
 	recEntries := MakeRecEntries(r)
 	DrawEntries(recEntries, recContainer, r)
-	go UpdateRecEntries(r, recContainer, &recEntries)
+	go UpdateRecEntries(r, recContainer, &recEntries, &recSearch)
 
 	addRecBtn := widget.NewToolbarAction(theme.ContentAddIcon(), func() { AddRecipeEntry(r, recContainer, w) })
 
@@ -479,9 +520,17 @@ func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) 
 	recTopCont := container.NewVBox(
 		recToolbar,
 	)
-	recMainCont := container.NewWithoutLayout(recTopCont, recContainer)
+	recSearchBar := NewSearchEntry()
+	recSearchBar.OnChanged = func(string) {
+		recSearchBar.HighlightSearch(&recEntries, r, &recSearch)
+	}
+
+	recMainCont := container.NewWithoutLayout(recTopCont, recSearchBar, recContainer)
 	//ingToolbar.Move(fyne.NewPos(0, 30))
 
+	recSearchBar.Resize(fyne.NewSize(WINSIZEX-10, 50))
+	recSearchBar.Resize(fyne.NewSize(WINSIZEX-10, 50))
+	recSearchBar.Move(fyne.NewPos(0, 40))
 	recContainer.Resize(fyne.NewSize(WINSIZEX-10, WINSIZEY-180))
 	recContainer.Move(fyne.NewPos(0, 100))
 

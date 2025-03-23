@@ -25,12 +25,17 @@ type Groceitem interface {
 	Read(data []byte)
 }
 
-type ingredient struct {
-	Amount      float64
-	Name        string
-	Unit        unitType
-	Check       bool
+type GrocBaseItem struct {
+	Name  string
+	Check bool
+
 	Highlighted bool
+}
+
+type ingredient struct {
+	GrocBaseItem
+	Amount float64
+	Unit   unitType
 }
 
 type ingredients struct {
@@ -39,13 +44,13 @@ type ingredients struct {
 }
 
 type recipe struct {
+	GrocBaseItem
 	RecipeIngs ingredients
-	Name       string
-	Check      bool
 }
 
 type recipes struct {
 	Recipes []recipe
+	Update  bool
 }
 
 type unitType = string
@@ -107,19 +112,24 @@ func (r *recipes) Remove(ind int) {
 
 func (i *ingredients) Add(name string) {
 	i.Ingredients = append(i.Ingredients, ingredient{
-		Name:        name,
-		Amount:      1.0,
-		Unit:        unt,
-		Check:       false,
-		Highlighted: false,
+		GrocBaseItem: GrocBaseItem{
+			Name:        name,
+			Check:       false,
+			Highlighted: false,
+		},
+		Unit:   unt,
+		Amount: 1.0,
 	})
 }
 
 func (r *recipes) Add(name string) {
 	r.Recipes = append(r.Recipes, recipe{
-		Name:       name,
+		GrocBaseItem: GrocBaseItem{
+			Name:        name,
+			Check:       false,
+			Highlighted: false,
+		},
 		RecipeIngs: ingredients{},
-		Check:      false,
 	})
 }
 
@@ -164,41 +174,6 @@ func (r *recipes) Read(data []byte) {
 			}
 		}
 	}
-}
-
-func (i *ingredients) CheckSort() {
-	checked := make([]ingredient, 0)
-	nonChecked := make([]ingredient, 0)
-
-	for _, item := range i.Ingredients {
-		if !item.Check {
-			nonChecked = append(nonChecked, item)
-		} else {
-			checked = append(checked, item)
-		}
-	}
-
-	nonChecked = append(nonChecked, checked...)
-	i.Ingredients = nonChecked
-
-}
-
-func (i *ingredients) HighlightSort() {
-
-	highlight := make([]ingredient, 0)
-	nonHighlight := make([]ingredient, 0)
-
-	for _, item := range i.Ingredients {
-		if !item.Highlighted {
-			nonHighlight = append(nonHighlight, item)
-		} else {
-			highlight = append(highlight, item)
-		}
-	}
-
-	highlight = append(highlight, nonHighlight...)
-	i.Ingredients = highlight
-
 }
 
 func CreateJson(i ingredients, r recipes) []byte {

@@ -80,7 +80,7 @@ func (t *Trie) AutoComplete(s string) []string {
 	*/
 	s = sanatize_string(s)
 	trieLevel, found := t.Find(s)
-
+	//fmt.Printf(" looking for %v found %v", s, found)
 	if !found {
 		return nil
 	}
