@@ -19,6 +19,7 @@ func main() {
 
 	w := a.NewWindow("Grocerii App")
 	w.Resize(fyne.NewSize(WINSIZEX, WINSIZEY))
+	w.SetMaster()
 	dataUR := GetDataURI(a)
 
 	ings := ingredients{Update: false}
@@ -31,7 +32,9 @@ func main() {
 
 	BuildUI(a, w, &ings, &recipes, dataUR)
 
-	w.ShowAndRun()
+	w.Show()
+
+	a.Run()
 
 }
 
