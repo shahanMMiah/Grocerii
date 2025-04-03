@@ -24,6 +24,7 @@ func (s *SearchEntry) HighlightSearch(objs *[]fyne.CanvasObject, items Groceitem
 
 	found := t.AutoComplete(s.Text)
 
+	//fmt.Println(found)
 	list := *objs
 
 	if ings, ok := items.(*ingredients); ok {
@@ -32,7 +33,7 @@ func (s *SearchEntry) HighlightSearch(objs *[]fyne.CanvasObject, items Groceitem
 			ings.Ingredients[iter].Highlighted = false
 
 			for _, f := range found {
-				if f == nameEntry.Segments[0].(*widget.TextSegment).Text {
+				if f == sanatize_string(nameEntry.Segments[0].(*widget.TextSegment).Text) {
 
 					ings.Ingredients[iter].Highlighted = true
 				}
@@ -52,7 +53,7 @@ func (s *SearchEntry) HighlightSearch(objs *[]fyne.CanvasObject, items Groceitem
 			recs.Recipes[iter].Highlighted = false
 
 			for _, f := range found {
-				if f == nameEntry.Segments[0].(*widget.TextSegment).Text {
+				if f == sanatize_string(nameEntry.Segments[0].(*widget.TextSegment).Text) {
 
 					recs.Recipes[iter].Highlighted = true
 				}
