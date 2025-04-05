@@ -19,6 +19,7 @@ func main() {
 
 	w := a.NewWindow("Grocerii App")
 	w.Resize(fyne.NewSize(WINSIZEX, WINSIZEY))
+	w.CenterOnScreen()
 	w.SetMaster()
 	dataUR := GetDataURI(a)
 

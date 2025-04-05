@@ -176,6 +176,23 @@ func (r *recipes) Read(data []byte) {
 	}
 }
 
+func (ings *ingredients) TransferIngredient(i *ingredient) {
+
+	if ings.Update {
+		for ind, ing := range ings.Ingredients {
+			if sanatize_string(i.Name) == sanatize_string(ing.Name) && i.Unit == ing.Unit {
+				ings.Ingredients[ind].Amount += i.Amount
+				return
+			}
+		}
+
+		ings.Add(i.Name)
+		ings.Ingredients[len(ings.Ingredients)-1].Unit = i.Unit
+		ings.Ingredients[len(ings.Ingredients)-1].Amount = i.Amount
+		ings.Ingredients[len(ings.Ingredients)-1].Check = i.Check
+	}
+}
+
 func CreateJson(i ingredients, r recipes) []byte {
 
 	data := make(map[string]interface{}, 0)

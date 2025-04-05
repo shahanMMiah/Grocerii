@@ -59,6 +59,7 @@ func (r *recipes) HighlightSort() {
 	nonHighlight := make([]recipe, 0)
 
 	for _, item := range r.Recipes {
+		//fmt.Println(item)
 		if !item.Highlighted {
 			nonHighlight = append(nonHighlight, item)
 		} else {

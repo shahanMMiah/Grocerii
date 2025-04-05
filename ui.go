@@ -156,13 +156,15 @@ func (t *TappableLabel) GetText() string {
 
 // ----------- entries --------------
 
-func MakeRecEntries(recs *recipes) []fyne.CanvasObject {
+func MakeRecEntries(recs *recipes, ings *ingredients, a fyne.App) []fyne.CanvasObject {
 	cnvs := make([]fyne.CanvasObject, 0)
 	for ind, r := range recs.Recipes {
 		nameEntry := NewTabableLabel(r.Name, ind)
 
 		checkBox := widget.NewCheck("", func(b bool) {
+
 			if b {
+
 				nameEntry.Color = theme.ColorNameDisabled
 				recs.Recipes[ind].Check = true
 
@@ -177,6 +179,8 @@ func MakeRecEntries(recs *recipes) []fyne.CanvasObject {
 
 		})
 
+		ingWindowBtn := widget.NewButtonWithIcon("", theme.MenuIcon(), func() { buildIngredientsWindow(a, &recs.Recipes[ind], ings) })
+
 		nameEntry.CallBack = func() bool {
 
 			recs.Remove(nameEntry.EntryInd)
@@ -187,6 +191,7 @@ func MakeRecEntries(recs *recipes) []fyne.CanvasObject {
 			layout.NewCustomPaddedHBoxLayout(3),
 			checkBox,
 			nameEntry,
+			ingWindowBtn,
 		)
 		cnvs = append(cnvs, cont)
 	}
@@ -304,7 +309,7 @@ func DrawEntries(e []fyne.CanvasObject, c *fyne.Container, g Groceitem) {
 
 }
 
-func AddEntry(g Groceitem, c *fyne.Container, w fyne.Window) {
+func AddEntry(g Groceitem, c *fyne.Container, w fyne.Window) bool {
 
 	textInput := widget.NewEntry()
 
@@ -361,9 +366,10 @@ func AddEntry(g Groceitem, c *fyne.Container, w fyne.Window) {
 		dialg.Show()
 
 	}
+	return true
 }
 
-func UpdateEntries(g Groceitem, c *fyne.Container, e *[]fyne.CanvasObject, t *Trie) {
+func UpdateEntries(g Groceitem, o Groceitem, c *fyne.Container, e *[]fyne.CanvasObject, t *Trie, a fyne.App) {
 	if i, ok := g.(*ingredients); ok {
 		for {
 			if len(i.Ingredients) != len(*e) || i.Update {
@@ -382,10 +388,11 @@ func UpdateEntries(g Groceitem, c *fyne.Container, e *[]fyne.CanvasObject, t *Tr
 	if r, ok := g.(*recipes); ok {
 		for {
 			if len(r.Recipes) != len(*e) || r.Update {
+				//fmt.Println(r)
 				t.build(r)
 				r.CheckSort()
 				r.HighlightSort()
-				*e = MakeRecEntries(r)
+				*e = MakeRecEntries(r, o.(*ingredients), a)
 				DrawEntries(*e, c, r)
 				DrawHighlights(r, e)
 				c.Refresh()
@@ -471,7 +478,42 @@ func GetEntryData(c []fyne.CanvasObject, g Groceitem, d fyne.URI) {
 
 // ----------- Main --------------
 
-func buildIngredientsWindow(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) {}
+func buildIngredientsWindow(a fyne.App, r *recipe, i *ingredients) fyne.Window {
+
+	//fmt.Println(r)
+	ingSearch := Trie{}
+	ingSearch.build(&r.RecipeIngs)
+
+	window := a.NewWindow(fmt.Sprintf("%v Ingrediants", r.Name))
+	window.Resize(fyne.NewSize(WINSIZEX, WINSIZEY))
+
+	ingContainer := container.NewStack()
+	ingsEntries := MakeIngEntries(&r.RecipeIngs)
+	DrawEntries(ingsEntries, ingContainer, &r.RecipeIngs)
+	go UpdateEntries(&r.RecipeIngs, i, ingContainer, &ingsEntries, &ingSearch, a)
+
+	addIngsBtn := widget.NewToolbarAction(theme.ContentAddIcon(), func() {
+
+		AddEntry(&r.RecipeIngs, ingContainer, window)
+
+	})
+
+	ingToolbar := widget.NewToolbar(addIngsBtn)
+	ingTopCont := container.NewVBox(ingToolbar)
+
+	//ingToolbar.Move(fyne.NewPos(0, 30))
+	ingContainer.Resize(fyne.NewSize(WINSIZEX-10, WINSIZEY-180))
+	ingContainer.Move(fyne.NewPos(0, 100))
+
+	ingMainCont := container.NewWithoutLayout(ingTopCont, ingContainer)
+
+	window.SetContent(ingMainCont)
+	window.Show()
+	window.RequestFocus()
+	window.CenterOnScreen()
+
+	return window
+}
 
 func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) {
 	// ingredients
@@ -490,7 +532,7 @@ func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) 
 	ingsEntries := MakeIngEntries(i)
 	DrawEntries(ingsEntries, ingContainer, i)
 	ingContainer.Resize(fyne.NewSize(WINSIZEX, WINSIZEY))
-	go UpdateEntries(i, ingContainer, &ingsEntries, &ingSearch)
+	go UpdateEntries(i, r, ingContainer, &ingsEntries, &ingSearch, a)
 
 	addIngsBtn := widget.NewToolbarAction(theme.ContentAddIcon(), func() { AddEntry(i, ingContainer, w) })
 	ingSaveBtn := widget.NewToolbarAction(theme.DocumentSaveIcon(), func() {
@@ -516,9 +558,9 @@ func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) 
 
 	// recipes
 	recContainer := container.NewStack()
-	recEntries := MakeRecEntries(r)
+	recEntries := MakeRecEntries(r, i, a)
 	DrawEntries(recEntries, recContainer, r)
-	go UpdateEntries(r, recContainer, &recEntries, &recSearch)
+	go UpdateEntries(r, i, recContainer, &recEntries, &recSearch, a)
 
 	addRecBtn := widget.NewToolbarAction(theme.ContentAddIcon(), func() { AddEntry(r, recContainer, w) })
 
