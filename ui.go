@@ -473,6 +473,7 @@ func GetEntryData(c []fyne.CanvasObject, g Groceitem, d fyne.URI) {
 			r.Recipes[ind].Check = rCon.Objects[0].(*widget.Check).Checked
 
 		}
+		//fmt.Println(r)
 	}
 }
 

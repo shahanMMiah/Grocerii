@@ -162,17 +162,28 @@ func (r *recipes) Read(data []byte) {
 		r.Recipes[ind].Check = rec["Check"].(bool)
 		r.Recipes[ind].RecipeIngs = ingredients{}
 
-		if rec["Ingredients"] != nil {
-			for ingInd, ing := range rec["Ingredients"].([]interface{}) {
-				ingMap := ing.(map[string]interface{})
-
-				r.Recipes[ind].RecipeIngs.Add(ingMap["Name"].(string))
-				r.Recipes[ind].RecipeIngs.Ingredients[ingInd].Amount = ingMap["Amount"].(float64)
-				r.Recipes[ind].RecipeIngs.Ingredients[ingInd].Unit = ingMap["Unit"].(unitType)
-				r.Recipes[ind].RecipeIngs.Ingredients[ingInd].Check = ingMap["Check"].(bool)
-
-			}
+		if rec["RecipeIngs"] == nil {
+			continue
 		}
+
+		recIngs := rec["RecipeIngs"].(map[string]interface{})
+
+		if recIngs["Ingredients"] == nil {
+			continue
+		}
+
+		for ingInd, ing := range recIngs["Ingredients"].([]interface{}) {
+
+			//fmt.Println(ing)
+			ingMap := ing.(map[string]interface{})
+
+			r.Recipes[ind].RecipeIngs.Add(ingMap["Name"].(string))
+			r.Recipes[ind].RecipeIngs.Ingredients[ingInd].Amount = ingMap["Amount"].(float64)
+			r.Recipes[ind].RecipeIngs.Ingredients[ingInd].Unit = ingMap["Unit"].(unitType)
+			r.Recipes[ind].RecipeIngs.Ingredients[ingInd].Check = ingMap["Check"].(bool)
+
+		}
+
 	}
 }
 
