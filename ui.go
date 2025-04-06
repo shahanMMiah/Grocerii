@@ -20,6 +20,10 @@ type SearchEntry struct {
 	Update bool
 }
 
+func (s *SearchEntry) TappedSecondary(_ *fyne.PointEvent) {
+
+}
+
 func (s *SearchEntry) HighlightSearch(objs *[]fyne.CanvasObject, items Groceitem, t *Trie) {
 
 	found := t.AutoComplete(s.Text)
@@ -208,7 +212,7 @@ func MakeIngEntries(ings *ingredients) []fyne.CanvasObject {
 		unitSel := widget.NewSelect(unitVals, func(v string) {})
 		unitSel.SetSelectedIndex(getUnitInd(i.Unit))
 		nameEntry := NewTabableLabel(fmt.Sprintf("%v", i.Name), ind)
-		unitEntry := widget.NewEntry()
+		unitEntry := NewSearchEntry()
 		unitEntry.SetText(fmt.Sprintf("%v", i.Amount))
 		checkBox := widget.NewCheck("", func(b bool) {
 
@@ -253,7 +257,7 @@ func MakeEmptyEntry(g Groceitem) fyne.CanvasObject {
 	if _, ok := g.(*ingredients); ok {
 		nameEntry := NewTabableLabel("", 0)
 		checkBox := widget.NewCheck("", func(b bool) {})
-		unitEntry := widget.NewEntry()
+		unitEntry := NewSearchEntry()
 
 		unitSel := widget.NewSelect(unitVals, func(v string) {})
 		unitSel.SetSelectedIndex(0)
@@ -311,7 +315,7 @@ func DrawEntries(e []fyne.CanvasObject, c *fyne.Container, g Groceitem) {
 
 func AddEntry(g Groceitem, c *fyne.Container, w fyne.Window) bool {
 
-	textInput := widget.NewEntry()
+	textInput := NewSearchEntry()
 
 	textInput.SetPlaceHolder("eh?")
 
@@ -329,8 +333,8 @@ func AddEntry(g Groceitem, c *fyne.Container, w fyne.Window) bool {
 			forms,
 			func(c bool) {
 				if c {
-					////fmt.Println(formItem.Widget.(*widget.Entry).Text)
-					i.Add(formItem.Widget.(*widget.Entry).Text)
+
+					i.Add(formItem.Widget.(*SearchEntry).Text)
 
 				}
 			},
@@ -356,7 +360,7 @@ func AddEntry(g Groceitem, c *fyne.Container, w fyne.Window) bool {
 			func(c bool) {
 
 				if c {
-					r.Add(formItem.Widget.(*widget.Entry).Text)
+					r.Add(formItem.Widget.(*SearchEntry).Text)
 
 				}
 			},
@@ -437,14 +441,14 @@ func ReadData(ur fyne.URI) []byte {
 	return data.Content()
 }
 
-func GetEntryData(c []fyne.CanvasObject, g Groceitem, d fyne.URI) {
+func GetEntryData(c []fyne.CanvasObject, g Groceitem) {
 	if i, ok := g.(*ingredients); ok {
 		for ind, con := range c {
 
 			rCon := con.(*fyne.Container)
 
 			i.Ingredients[ind].Name = rCon.Objects[1].(*TappableLabel).GetText()
-			n, err := strconv.ParseFloat(rCon.Objects[2].(*widget.Entry).Text, 64)
+			n, err := strconv.ParseFloat(rCon.Objects[2].(*SearchEntry).Text, 64)
 
 			if err != nil {
 				panic(err)
@@ -473,7 +477,7 @@ func GetEntryData(c []fyne.CanvasObject, g Groceitem, d fyne.URI) {
 			r.Recipes[ind].Check = rCon.Objects[0].(*widget.Check).Checked
 
 		}
-		//fmt.Println(r)
+
 	}
 }
 
@@ -499,7 +503,19 @@ func buildIngredientsWindow(a fyne.App, r *recipe, i *ingredients) fyne.Window {
 
 	})
 
-	ingToolbar := widget.NewToolbar(addIngsBtn)
+	transIngsBtn := widget.NewToolbarAction(theme.ContentUndoIcon(), func() {
+
+		GetEntryData(ingsEntries, &r.RecipeIngs)
+		i.TransferIngredients(&r.RecipeIngs)
+		msg := dialog.NewInformation(
+			fmt.Sprintf("%v ingredients transfer", r.Name),
+			fmt.Sprintf("%v ingredients added to main list", r.Name),
+			window)
+		msg.Show()
+
+	})
+
+	ingToolbar := widget.NewToolbar(addIngsBtn, transIngsBtn)
 	ingTopCont := container.NewVBox(ingToolbar)
 
 	//ingToolbar.Move(fyne.NewPos(0, 30))
@@ -510,6 +526,10 @@ func buildIngredientsWindow(a fyne.App, r *recipe, i *ingredients) fyne.Window {
 
 	window.SetContent(ingMainCont)
 	window.Show()
+	window.SetOnClosed(func() {
+		GetEntryData(ingsEntries, &r.RecipeIngs)
+
+	})
 	window.RequestFocus()
 	window.CenterOnScreen()
 
@@ -537,7 +557,7 @@ func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) 
 
 	addIngsBtn := widget.NewToolbarAction(theme.ContentAddIcon(), func() { AddEntry(i, ingContainer, w) })
 	ingSaveBtn := widget.NewToolbarAction(theme.DocumentSaveIcon(), func() {
-		GetEntryData(ingsEntries, i, d)
+		GetEntryData(ingsEntries, i)
 		SaveData(d, i, r)
 	})
 
@@ -566,7 +586,7 @@ func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) 
 	addRecBtn := widget.NewToolbarAction(theme.ContentAddIcon(), func() { AddEntry(r, recContainer, w) })
 
 	saveBtn := widget.NewToolbarAction(theme.DocumentSaveIcon(), func() {
-		GetEntryData(recEntries, r, d)
+		GetEntryData(recEntries, r)
 		SaveData(d, i, r)
 	})
 	recToolbar := widget.NewToolbar(addRecBtn, saveBtn)

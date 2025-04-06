@@ -187,20 +187,30 @@ func (r *recipes) Read(data []byte) {
 	}
 }
 
-func (ings *ingredients) TransferIngredient(i *ingredient) {
+func (ings *ingredients) TransferIngredients(i *ingredients) {
 
-	if ings.Update {
+	for _, tIng := range i.Ingredients {
+		found := false
 		for ind, ing := range ings.Ingredients {
-			if sanatize_string(i.Name) == sanatize_string(ing.Name) && i.Unit == ing.Unit {
-				ings.Ingredients[ind].Amount += i.Amount
-				return
+			if sanatize_string(tIng.Name) == sanatize_string(ing.Name) && tIng.Unit == ing.Unit {
+				if ing.Check {
+					ings.Ingredients[ind].Check = false
+					ings.Ingredients[ind].Amount = tIng.Amount
+
+				} else {
+					ings.Ingredients[ind].Amount += tIng.Amount
+				}
+				found = true
+				break
 			}
 		}
 
-		ings.Add(i.Name)
-		ings.Ingredients[len(ings.Ingredients)-1].Unit = i.Unit
-		ings.Ingredients[len(ings.Ingredients)-1].Amount = i.Amount
-		ings.Ingredients[len(ings.Ingredients)-1].Check = i.Check
+		if !found {
+			ings.Add(tIng.Name)
+			ings.Ingredients[len(ings.Ingredients)-1].Unit = tIng.Unit
+			ings.Ingredients[len(ings.Ingredients)-1].Amount = tIng.Amount
+			ings.Ingredients[len(ings.Ingredients)-1].Check = tIng.Check
+		}
 	}
 }
 
