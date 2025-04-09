@@ -187,6 +187,13 @@ func (r *recipes) Read(data []byte) {
 	}
 }
 
+func (i *ingredients) CheckAll() {
+	for ind, _ := range i.Ingredients {
+		i.Ingredients[ind].Check = true
+
+	}
+}
+
 func (ings *ingredients) TransferIngredients(i *ingredients) {
 
 	for _, tIng := range i.Ingredients {

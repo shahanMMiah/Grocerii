@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"image/color"
 	"strconv"
 
 	"fyne.io/fyne/v2"
@@ -13,6 +14,52 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
+
+// ----------- Theme --------------
+type Theme interface {
+	Color(fyne.ThemeColorName, fyne.ThemeVariant) color.Color
+	Font(fyne.TextStyle) fyne.Resource
+	Icon(fyne.ThemeIconName) fyne.Resource
+	Size(fyne.ThemeSizeName) float32
+}
+
+type CustomTheme struct{}
+
+var _ fyne.Theme = (*CustomTheme)(nil)
+
+type CustomColor struct {
+	r, g, b, a uint32
+}
+
+func (col CustomColor) RGBA() (r, g, b, a uint32) {
+	r = uint32(0xffff * (float64(col.r) / 255.0))
+	g = uint32(0xffff * (float64(col.g) / 255.0))
+	b = uint32(0xffff * (float64(col.b) / 255.0))
+	a = uint32(0xffff * (float64(col.a) / 255.0))
+
+	return r, g, b, a
+
+}
+
+func (m CustomTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color {
+	if name == theme.ColorNameBackground {
+
+		return CustomColor{r: 130, g: 10, b: 255, a: 0}
+	}
+
+	return theme.DefaultTheme().Color(name, variant)
+}
+func (m CustomTheme) Icon(name fyne.ThemeIconName) fyne.Resource {
+	return theme.DefaultTheme().Icon(name)
+}
+
+func (m CustomTheme) Font(style fyne.TextStyle) fyne.Resource {
+	return theme.DefaultTheme().Font(style)
+}
+
+func (m CustomTheme) Size(name fyne.ThemeSizeName) float32 {
+	return theme.DefaultTheme().Size(name)
+}
 
 // ----------- Search Bar --------------
 type SearchEntry struct {
@@ -560,8 +607,13 @@ func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) 
 		GetEntryData(ingsEntries, i)
 		SaveData(d, i, r)
 	})
+	chekAllBtn := widget.NewToolbarAction(theme.CheckButtonCheckedIcon(), func() {
+		GetEntryData(ingsEntries, i)
+		i.CheckAll()
+		i.Update = true
+	})
 
-	ingToolbar := widget.NewToolbar(addIngsBtn, ingSaveBtn)
+	ingToolbar := widget.NewToolbar(addIngsBtn, ingSaveBtn, chekAllBtn)
 	ingTopCont := container.NewVBox(ingToolbar)
 	ingSearchBar := NewSearchEntry()
 
@@ -612,6 +664,14 @@ func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) 
 		container.NewTabItem("Ingredients", ingMainCont),
 		container.NewTabItem("Reipes", recMainCont))
 
+	Tab.OnSelected = func(t *container.TabItem) {
+		i.Update = true
+		r.Update = true
+
+	}
+
 	w.SetContent(Tab)
+
+	a.Settings().SetTheme(&CustomTheme{})
 
 }
