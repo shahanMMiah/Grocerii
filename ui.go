@@ -74,6 +74,7 @@ func MakeIngEntries(ings *ingredients) []fyne.CanvasObject {
 
 			if b {
 				nameEntry.Color = theme.ColorNameDisabled
+				ings.Ingredients[ind].CheckReferenced()
 				ings.Ingredients[ind].Check = true
 
 			} else {

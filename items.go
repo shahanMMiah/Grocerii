@@ -34,8 +34,9 @@ type GrocBaseItem struct {
 
 type ingredient struct {
 	GrocBaseItem
-	Amount float64
-	Unit   unitType
+	Amount     float64
+	Unit       unitType
+	Referenced []*ingredient
 }
 
 type ingredients struct {
@@ -80,6 +81,19 @@ func getUnitInd(s string) int {
 }
 
 var unitVals = []string{grams, kg, ml, ltr, unt}
+
+func (i *ingredient) RemoveReferenced(ind int) {
+	newRef := make([]*ingredient, 0)
+
+	if ind > 0 {
+		newRef = append(newRef, i.Referenced[0:ind]...)
+	}
+
+	newRef = append(newRef, i.Referenced[ind+1:int(len(i.Referenced))]...)
+
+	i.Referenced = newRef
+
+}
 
 func (i *ingredients) Remove(ind int) {
 
@@ -188,15 +202,28 @@ func (r *recipes) Read(data []byte) {
 }
 
 func (i *ingredients) CheckAll() {
-	for ind, _ := range i.Ingredients {
+	for ind := range i.Ingredients {
 		i.Ingredients[ind].Check = true
 
 	}
 }
 
+func (i *ingredient) AddReference(ing *ingredient) {
+	i.Referenced = append(i.Referenced, ing)
+}
+
+func (i *ingredient) CheckReferenced() {
+	//fmt.Printf("reeferenced %v", i.Referenced)
+	for iter := range i.Referenced {
+
+		i.Referenced[iter].Check = true
+		//i.RemoveReferenced(iter)
+	}
+}
+
 func (ings *ingredients) TransferIngredients(i *ingredients) {
 
-	for _, tIng := range i.Ingredients {
+	for tInd, tIng := range i.Ingredients {
 		found := false
 		for ind, ing := range ings.Ingredients {
 			if sanatize_string(tIng.Name) == sanatize_string(ing.Name) && tIng.Unit == ing.Unit {
@@ -207,6 +234,8 @@ func (ings *ingredients) TransferIngredients(i *ingredients) {
 				} else {
 					ings.Ingredients[ind].Amount += tIng.Amount
 				}
+				ings.Ingredients[ind].AddReference(&i.Ingredients[tInd])
+				//fmt.Printf("%v has these referenced %v", ing.Name, ings.Ingredients[ind].Referenced)
 				found = true
 				break
 			}

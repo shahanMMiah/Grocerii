@@ -37,7 +37,7 @@ func (col CustomColor) RGBA() (r, g, b, a uint32) {
 func (m CustomTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color {
 	if name == theme.ColorNameBackground {
 
-		return CustomColor{r: 130, g: 10, b: 255, a: 0}
+		return CustomColor{r: 20, g: 20, b: 80, a: 255}
 	}
 
 	return theme.DefaultTheme().Color(name, variant)
