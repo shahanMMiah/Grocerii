@@ -148,6 +148,7 @@ func DrawHighlights(items Groceitem, objs *[]fyne.CanvasObject) {
 
 func NewSearchEntry() *SearchEntry {
 	entry := &SearchEntry{}
+	//entry.MultiLine = true
 	entry.ExtendBaseWidget(entry)
 	return entry
 }

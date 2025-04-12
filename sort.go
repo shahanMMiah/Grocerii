@@ -1,14 +1,14 @@
 package main
 
 func (i *ingredients) CheckSort() {
-	checked := make([]ingredient, 0)
-	nonChecked := make([]ingredient, 0)
+	checked := make([]*ingredient, 0)
+	nonChecked := make([]*ingredient, 0)
 
-	for _, item := range i.Ingredients {
+	for iter, item := range i.Ingredients {
 		if !item.Check {
-			nonChecked = append(nonChecked, item)
+			nonChecked = append(nonChecked, i.Ingredients[iter])
 		} else {
-			checked = append(checked, item)
+			checked = append(checked, i.Ingredients[iter])
 		}
 	}
 
@@ -37,14 +37,14 @@ func (r *recipes) CheckSort() {
 
 func (i *ingredients) HighlightSort() {
 
-	highlight := make([]ingredient, 0)
-	nonHighlight := make([]ingredient, 0)
+	highlight := make([]*ingredient, 0)
+	nonHighlight := make([]*ingredient, 0)
 
-	for _, item := range i.Ingredients {
+	for iter, item := range i.Ingredients {
 		if !item.Highlighted {
-			nonHighlight = append(nonHighlight, item)
+			nonHighlight = append(nonHighlight, i.Ingredients[iter])
 		} else {
-			highlight = append(highlight, item)
+			highlight = append(highlight, i.Ingredients[iter])
 		}
 	}
 

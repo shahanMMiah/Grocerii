@@ -417,9 +417,16 @@ func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) 
 		GetEntryData(ingsEntries, i)
 		SaveData(d, i, r)
 	})
+
+	allCheck := false
 	chekAllBtn := widget.NewToolbarAction(theme.CheckButtonCheckedIcon(), func() {
 		GetEntryData(ingsEntries, i)
-		i.CheckAll()
+		if allCheck {
+			allCheck = false
+		} else {
+			allCheck = true
+		}
+		i.CheckAll(&allCheck)
 		i.Update = true
 	})
 

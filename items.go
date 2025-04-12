@@ -40,7 +40,7 @@ type ingredient struct {
 }
 
 type ingredients struct {
-	Ingredients []ingredient
+	Ingredients []*ingredient
 	Update      bool
 }
 
@@ -125,7 +125,7 @@ func (r *recipes) Remove(ind int) {
 }
 
 func (i *ingredients) Add(name string) {
-	i.Ingredients = append(i.Ingredients, ingredient{
+	i.Ingredients = append(i.Ingredients, &ingredient{
 		GrocBaseItem: GrocBaseItem{
 			Name:        name,
 			Check:       false,
@@ -149,7 +149,7 @@ func (r *recipes) Add(name string) {
 
 func (i *ingredients) Read(data []byte) {
 
-	i.Ingredients = []ingredient{}
+	i.Ingredients = []*ingredient{}
 
 	jsnMap := make(map[string][]map[string]interface{})
 	json.Unmarshal(data, &jsnMap)
@@ -201,9 +201,10 @@ func (r *recipes) Read(data []byte) {
 	}
 }
 
-func (i *ingredients) CheckAll() {
+func (i *ingredients) CheckAll(check *bool) {
+
 	for ind := range i.Ingredients {
-		i.Ingredients[ind].Check = true
+		i.Ingredients[ind].Check = *check
 
 	}
 }
@@ -217,7 +218,7 @@ func (i *ingredient) CheckReferenced() {
 	for iter := range i.Referenced {
 
 		i.Referenced[iter].Check = true
-		//i.RemoveReferenced(iter)
+		i.RemoveReferenced(iter)
 	}
 }
 
@@ -234,7 +235,7 @@ func (ings *ingredients) TransferIngredients(i *ingredients) {
 				} else {
 					ings.Ingredients[ind].Amount += tIng.Amount
 				}
-				ings.Ingredients[ind].AddReference(&i.Ingredients[tInd])
+				ings.Ingredients[ind].AddReference(i.Ingredients[tInd])
 				//fmt.Printf("%v has these referenced %v", ing.Name, ings.Ingredients[ind].Referenced)
 				found = true
 				break
