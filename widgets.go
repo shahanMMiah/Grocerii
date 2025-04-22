@@ -37,7 +37,7 @@ func (col CustomColor) RGBA() (r, g, b, a uint32) {
 func (m CustomTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color {
 	if name == theme.ColorNameBackground {
 
-		return CustomColor{r: 20, g: 20, b: 80, a: 255}
+		return CustomColor{r: 50, g: 30, b: 180, a: 255}
 	}
 
 	return theme.DefaultTheme().Color(name, variant)
@@ -58,6 +58,15 @@ func (m CustomTheme) Size(name fyne.ThemeSizeName) float32 {
 type SearchEntry struct {
 	widget.Entry
 	Update bool
+}
+
+func NewSearchEntry() *SearchEntry {
+	entry := &SearchEntry{}
+
+	entry.ExtendBaseWidget(entry)
+
+	return entry
+
 }
 
 func (s *SearchEntry) TappedSecondary(_ *fyne.PointEvent) {
@@ -144,13 +153,6 @@ func DrawHighlights(items Groceitem, objs *[]fyne.CanvasObject) {
 
 	}
 
-}
-
-func NewSearchEntry() *SearchEntry {
-	entry := &SearchEntry{}
-	//entry.MultiLine = true
-	entry.ExtendBaseWidget(entry)
-	return entry
 }
 
 // ----------- tapable label --------------

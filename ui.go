@@ -230,6 +230,10 @@ func AddEntry(g Groceitem, c *fyne.Container, w fyne.Window) bool {
 	return true
 }
 
+func InsertEntry(g Groceitem, itemName string) bool {
+	return true
+}
+
 func UpdateEntries(g Groceitem, o Groceitem, c *fyne.Container, e *[]fyne.CanvasObject, t *Trie, a fyne.App) {
 	if i, ok := g.(*ingredients); ok {
 		for {
@@ -412,7 +416,19 @@ func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) 
 	ingContainer.Resize(fyne.NewSize(WINSIZEX, WINSIZEY))
 	go UpdateEntries(i, r, ingContainer, &ingsEntries, &ingSearch, a)
 
-	addIngsBtn := widget.NewToolbarAction(theme.ContentAddIcon(), func() { AddEntry(i, ingContainer, w) })
+	ingSearchBar := NewSearchEntry()
+
+	ingSearchBar.OnChanged = func(string) {
+		ingSearchBar.HighlightSearch(&ingsEntries, i, &ingSearch)
+	}
+
+	// toolbar
+	addIngsBtn := widget.NewToolbarAction(theme.ContentAddIcon(), func() {
+		if ingSearchBar.Text != "" {
+			i.Insert(sanatize_string(ingSearchBar.Text))
+		}
+		//AddEntry(i, ingContainer, w)
+	})
 	ingSaveBtn := widget.NewToolbarAction(theme.DocumentSaveIcon(), func() {
 		GetEntryData(ingsEntries, i)
 		SaveData(d, i, r)
@@ -432,11 +448,6 @@ func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) 
 
 	ingToolbar := widget.NewToolbar(addIngsBtn, ingSaveBtn, chekAllBtn)
 	ingTopCont := container.NewVBox(ingToolbar)
-	ingSearchBar := NewSearchEntry()
-
-	ingSearchBar.OnChanged = func(string) {
-		ingSearchBar.HighlightSearch(&ingsEntries, i, &ingSearch)
-	}
 
 	ingMainCont := container.NewWithoutLayout(ingTopCont, ingSearchBar, ingContainer)
 	//ingToolbar.Move(fyne.NewPos(0, 30))
@@ -452,7 +463,20 @@ func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) 
 	DrawEntries(recEntries, recContainer, r)
 	go UpdateEntries(r, i, recContainer, &recEntries, &recSearch, a)
 
-	addRecBtn := widget.NewToolbarAction(theme.ContentAddIcon(), func() { AddEntry(r, recContainer, w) })
+	recSearchBar := NewSearchEntry()
+	recSearchBar.OnChanged = func(string) {
+		recSearchBar.HighlightSearch(&recEntries, r, &recSearch)
+	}
+
+	//toolbar
+	addRecBtn := widget.NewToolbarAction(theme.ContentAddIcon(), func() {
+		if recSearchBar.Text != "" {
+			r.Insert(sanatize_string(recSearchBar.Text))
+		}
+
+	})
+
+	//AddEntry(r, recContainer, w) })
 
 	saveBtn := widget.NewToolbarAction(theme.DocumentSaveIcon(), func() {
 		GetEntryData(recEntries, r)
@@ -463,10 +487,6 @@ func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) 
 	recTopCont := container.NewVBox(
 		recToolbar,
 	)
-	recSearchBar := NewSearchEntry()
-	recSearchBar.OnChanged = func(string) {
-		recSearchBar.HighlightSearch(&recEntries, r, &recSearch)
-	}
 
 	recMainCont := container.NewWithoutLayout(recTopCont, recSearchBar, recContainer)
 	//ingToolbar.Move(fyne.NewPos(0, 30))

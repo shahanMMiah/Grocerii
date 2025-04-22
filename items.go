@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"slices"
 	"unicode"
 )
 
@@ -135,9 +136,31 @@ func (i *ingredients) Add(name string) {
 		Amount: 1.0,
 	})
 }
+func (i *ingredients) Insert(name string) {
+	i.Ingredients = slices.Insert(i.Ingredients, 0, &ingredient{
+		GrocBaseItem: GrocBaseItem{
+			Name:        name,
+			Check:       false,
+			Highlighted: false,
+		},
+		Unit:   unt,
+		Amount: 1.0,
+	})
+}
 
 func (r *recipes) Add(name string) {
 	r.Recipes = append(r.Recipes, recipe{
+		GrocBaseItem: GrocBaseItem{
+			Name:        name,
+			Check:       false,
+			Highlighted: false,
+		},
+		RecipeIngs: ingredients{},
+	})
+}
+
+func (r *recipes) Insert(name string) {
+	r.Recipes = slices.Insert(r.Recipes, 0, recipe{
 		GrocBaseItem: GrocBaseItem{
 			Name:        name,
 			Check:       false,
