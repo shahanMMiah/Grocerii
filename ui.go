@@ -358,10 +358,18 @@ func buildIngredientsWindow(a fyne.App, r *recipe, i *ingredients) fyne.Window {
 	DrawEntries(ingsEntries, ingContainer, &r.RecipeIngs)
 	go UpdateEntries(&r.RecipeIngs, i, ingContainer, &ingsEntries, &ingSearch, a)
 
+	ingSearchBar := NewSearchEntry()
+	ingSearchBar.OnChanged = func(string) {
+		ingSearchBar.HighlightSearch(&ingsEntries, &r.RecipeIngs, &ingSearch)
+	}
+
+	//actions
+
 	addIngsBtn := widget.NewToolbarAction(theme.ContentAddIcon(), func() {
-
-		AddEntry(&r.RecipeIngs, ingContainer, window)
-
+		if ingSearchBar.Text != "" {
+			//AddEntry(&r.RecipeIngs, ingContainer, window)
+			r.RecipeIngs.Insert(ingSearchBar.Text)
+		}
 	})
 
 	transIngsBtn := widget.NewToolbarAction(theme.ContentUndoIcon(), func() {
@@ -380,10 +388,13 @@ func buildIngredientsWindow(a fyne.App, r *recipe, i *ingredients) fyne.Window {
 	ingTopCont := container.NewVBox(ingToolbar)
 
 	//ingToolbar.Move(fyne.NewPos(0, 30))
+	ingSearchBar.Resize(fyne.NewSize(WINSIZEX-10, 50))
+	ingSearchBar.Move(fyne.NewPos(0, 40))
+
 	ingContainer.Resize(fyne.NewSize(WINSIZEX-10, WINSIZEY-180))
 	ingContainer.Move(fyne.NewPos(0, 100))
 
-	ingMainCont := container.NewWithoutLayout(ingTopCont, ingContainer)
+	ingMainCont := container.NewWithoutLayout(ingTopCont, ingSearchBar, ingContainer)
 
 	window.SetContent(ingMainCont)
 	window.Show()
@@ -451,7 +462,6 @@ func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) 
 
 	ingMainCont := container.NewWithoutLayout(ingTopCont, ingSearchBar, ingContainer)
 	//ingToolbar.Move(fyne.NewPos(0, 30))
-	ingSearchBar.Resize(fyne.NewSize(WINSIZEX-10, 50))
 	ingSearchBar.Resize(fyne.NewSize(WINSIZEX-10, 50))
 	ingSearchBar.Move(fyne.NewPos(0, 40))
 	ingContainer.Resize(fyne.NewSize(WINSIZEX-10, WINSIZEY-180))
