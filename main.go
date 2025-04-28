@@ -1,6 +1,6 @@
-//go:generate fyne bundle -o bundled.go data.json
-
 // fyne package -os android -appID .com.test.groceriiTest
+//
+//go:generate fyne bundle -o bundled.go assets
 package main
 
 import (

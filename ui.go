@@ -16,7 +16,7 @@ import (
 
 // ----------- entries --------------
 
-func MakeRecEntries(recs *recipes, ings *ingredients, a fyne.App) []fyne.CanvasObject {
+func MakeRecEntries(recs *recipes, ings *ingredients, a fyne.App, d fyne.URI) []fyne.CanvasObject {
 	cnvs := make([]fyne.CanvasObject, 0)
 	for ind, r := range recs.Recipes {
 		nameEntry := NewTabableLabel(r.Name, ind)
@@ -39,7 +39,7 @@ func MakeRecEntries(recs *recipes, ings *ingredients, a fyne.App) []fyne.CanvasO
 
 		})
 
-		ingWindowBtn := widget.NewButtonWithIcon("", theme.MenuIcon(), func() { buildIngredientsWindow(a, &recs.Recipes[ind], ings) })
+		ingWindowBtn := widget.NewButtonWithIcon("", theme.MenuIcon(), func() { buildIngredientsWindow(a, &recs.Recipes[ind], recs, ings, d) })
 
 		nameEntry.CallBack = func() bool {
 
@@ -234,7 +234,7 @@ func InsertEntry(g Groceitem, itemName string) bool {
 	return true
 }
 
-func UpdateEntries(g Groceitem, o Groceitem, c *fyne.Container, e *[]fyne.CanvasObject, t *Trie, a fyne.App) {
+func UpdateEntries(g Groceitem, o Groceitem, c *fyne.Container, e *[]fyne.CanvasObject, t *Trie, a fyne.App, d fyne.URI) {
 	if i, ok := g.(*ingredients); ok {
 		for {
 			if len(i.Ingredients) != len(*e) || i.Update {
@@ -257,7 +257,7 @@ func UpdateEntries(g Groceitem, o Groceitem, c *fyne.Container, e *[]fyne.Canvas
 				t.build(r)
 				r.CheckSort()
 				r.HighlightSort()
-				*e = MakeRecEntries(r, o.(*ingredients), a)
+				*e = MakeRecEntries(r, o.(*ingredients), a, d)
 				DrawEntries(*e, c, r)
 				DrawHighlights(r, e)
 				c.Refresh()
@@ -344,7 +344,7 @@ func GetEntryData(c []fyne.CanvasObject, g Groceitem) {
 
 // ----------- Main --------------
 
-func buildIngredientsWindow(a fyne.App, r *recipe, i *ingredients) fyne.Window {
+func buildIngredientsWindow(a fyne.App, r *recipe, recs *recipes, i *ingredients, d fyne.URI) fyne.Window {
 
 	//fmt.Println(r)
 	ingSearch := Trie{}
@@ -356,7 +356,7 @@ func buildIngredientsWindow(a fyne.App, r *recipe, i *ingredients) fyne.Window {
 	ingContainer := container.NewStack()
 	ingsEntries := MakeIngEntries(&r.RecipeIngs)
 	DrawEntries(ingsEntries, ingContainer, &r.RecipeIngs)
-	go UpdateEntries(&r.RecipeIngs, i, ingContainer, &ingsEntries, &ingSearch, a)
+	go UpdateEntries(&r.RecipeIngs, i, ingContainer, &ingsEntries, &ingSearch, a, d)
 
 	ingSearchBar := NewSearchEntry()
 	ingSearchBar.OnChanged = func(string) {
@@ -364,6 +364,10 @@ func buildIngredientsWindow(a fyne.App, r *recipe, i *ingredients) fyne.Window {
 	}
 
 	//actions
+	saveBtn := widget.NewToolbarAction(theme.DocumentSaveIcon(), func() {
+		GetEntryData(ingsEntries, &r.RecipeIngs)
+		SaveData(d, i, recs)
+	})
 
 	addIngsBtn := widget.NewToolbarAction(theme.ContentAddIcon(), func() {
 		if ingSearchBar.Text != "" {
@@ -384,7 +388,7 @@ func buildIngredientsWindow(a fyne.App, r *recipe, i *ingredients) fyne.Window {
 
 	})
 
-	ingToolbar := widget.NewToolbar(addIngsBtn, transIngsBtn)
+	ingToolbar := widget.NewToolbar(addIngsBtn, saveBtn, transIngsBtn)
 	ingTopCont := container.NewVBox(ingToolbar)
 
 	//ingToolbar.Move(fyne.NewPos(0, 30))
@@ -425,7 +429,7 @@ func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) 
 	ingsEntries := MakeIngEntries(i)
 	DrawEntries(ingsEntries, ingContainer, i)
 	ingContainer.Resize(fyne.NewSize(WINSIZEX, WINSIZEY))
-	go UpdateEntries(i, r, ingContainer, &ingsEntries, &ingSearch, a)
+	go UpdateEntries(i, r, ingContainer, &ingsEntries, &ingSearch, a, d)
 
 	ingSearchBar := NewSearchEntry()
 
@@ -469,9 +473,9 @@ func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) 
 
 	// recipes
 	recContainer := container.NewStack()
-	recEntries := MakeRecEntries(r, i, a)
+	recEntries := MakeRecEntries(r, i, a, d)
 	DrawEntries(recEntries, recContainer, r)
-	go UpdateEntries(r, i, recContainer, &recEntries, &recSearch, a)
+	go UpdateEntries(r, i, recContainer, &recEntries, &recSearch, a, d)
 
 	recSearchBar := NewSearchEntry()
 	recSearchBar.OnChanged = func(string) {

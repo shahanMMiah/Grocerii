@@ -35,9 +35,19 @@ func (col CustomColor) RGBA() (r, g, b, a uint32) {
 }
 
 func (m CustomTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color {
-	if name == theme.ColorNameBackground {
 
-		return CustomColor{r: 50, g: 30, b: 180, a: 255}
+	switch name {
+	case theme.ColorNameBackground:
+		return CustomColor{r: 240, g: 240, b: 191, a: 255}
+
+	case theme.ColorNameForeground:
+		return CustomColor{r: 0, g: 0, b: 0, a: 255}
+
+	case theme.ColorNameInputBackground,
+		theme.ColorNameMenuBackground,
+		theme.ColorNameOverlayBackground:
+		return CustomColor{r: 245, g: 245, b: 210, a: 255}
+
 	}
 
 	return theme.DefaultTheme().Color(name, variant)
@@ -47,10 +57,16 @@ func (m CustomTheme) Icon(name fyne.ThemeIconName) fyne.Resource {
 }
 
 func (m CustomTheme) Font(style fyne.TextStyle) fyne.Resource {
-	return theme.DefaultTheme().Font(style)
+	return resourceCheescakeMonolineTtf
+
+	//return theme.DefaultTheme().Font(style)
 }
 
 func (m CustomTheme) Size(name fyne.ThemeSizeName) float32 {
+	switch name {
+	case theme.SizeNameText:
+		return 28
+	}
 	return theme.DefaultTheme().Size(name)
 }
 
