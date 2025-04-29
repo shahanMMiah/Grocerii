@@ -30,6 +30,7 @@ func main() {
 	recipes.Read(ReadData(dataUR))
 
 	//fmt.Println(ingSearch)
+	a.Settings().SetTheme(&CustomTheme{})
 
 	BuildUI(a, w, &ings, &recipes, dataUR)
 

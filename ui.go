@@ -523,6 +523,4 @@ func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) 
 
 	w.SetContent(Tab)
 
-	a.Settings().SetTheme(&CustomTheme{})
-
 }

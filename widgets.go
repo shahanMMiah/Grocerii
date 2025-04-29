@@ -48,6 +48,9 @@ func (m CustomTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) 
 		theme.ColorNameOverlayBackground:
 		return CustomColor{r: 245, g: 245, b: 210, a: 255}
 
+	case theme.ColorNameButton:
+		return CustomColor{r: 245, g: 245, b: 210, a: 255}
+
 	}
 
 	return theme.DefaultTheme().Color(name, variant)
