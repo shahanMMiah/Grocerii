@@ -53,7 +53,6 @@ func (t *Trie) Find(s string) (*TrieNode, bool) {
 	tempLevel := &t.RootNode
 	for ind, chr := range s {
 		level, exist := tempLevel.Children[chr]
-		//fmt.Println(tempLevel.Children[chr])
 
 		if !exist && !level.End {
 			return tempLevel, false
@@ -73,14 +72,10 @@ func (t *Trie) Find(s string) (*TrieNode, bool) {
 }
 
 func (t *Trie) AutoComplete(s string) []string {
-	/*
-		check if string exisit and get current level
-		from current level
-		call get complete that returns list of existing words possible from level
-	*/
+
 	s = sanatize_string(s)
 	trieLevel, found := t.Find(s)
-	//fmt.Printf(" looking for %v found %v", s, found)
+
 	if !found {
 		return nil
 	}
@@ -90,11 +85,6 @@ func (t *Trie) AutoComplete(s string) []string {
 }
 
 func FindWords(tn *TrieNode, s []string, cs string) []string {
-	/*
-		from currnet level check children and and call get complete to get possible from level
-			if level is end add current cs + letter to return slice slice
-			for each of children letter, concat retured list from called get complete
-	*/
 
 	cs += string(tn.char)
 
@@ -110,7 +100,6 @@ func FindWords(tn *TrieNode, s []string, cs string) []string {
 		s = append(s, cs)
 	}
 
-	//fmt.Printf("at %v list is at %v \n", cs, s)
 	return s
 }
 
