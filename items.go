@@ -99,7 +99,6 @@ func (i *ingredient) RemoveReferenced(ind int) {
 func (i *ingredients) Remove(ind int) {
 
 	newIngs := ingredients{}
-	//fmt.Println(ind)
 
 	if ind > 0 {
 		newIngs.Ingredients = append(newIngs.Ingredients, i.Ingredients[0:ind]...)
@@ -108,8 +107,6 @@ func (i *ingredients) Remove(ind int) {
 	newIngs.Ingredients = append(newIngs.Ingredients, i.Ingredients[ind+1:int(len(i.Ingredients))]...)
 
 	newIngs.Ingredients, i.Ingredients = i.Ingredients, newIngs.Ingredients
-
-	//fmt.Println(i.Ingredients)
 
 }
 
@@ -211,7 +208,6 @@ func (r *recipes) Read(data []byte) {
 
 		for ingInd, ing := range recIngs["Ingredients"].([]interface{}) {
 
-			//fmt.Println(ing)
 			ingMap := ing.(map[string]interface{})
 
 			r.Recipes[ind].RecipeIngs.Add(ingMap["Name"].(string))
@@ -237,7 +233,7 @@ func (i *ingredient) AddReference(ing *ingredient) {
 }
 
 func (i *ingredient) CheckReferenced() {
-	//fmt.Printf("reeferenced %v", i.Referenced)
+
 	for iter := range i.Referenced {
 
 		i.Referenced[iter].Check = true
@@ -259,7 +255,7 @@ func (ings *ingredients) TransferIngredients(i *ingredients) {
 					ings.Ingredients[ind].Amount += tIng.Amount
 				}
 				ings.Ingredients[ind].AddReference(i.Ingredients[tInd])
-				//fmt.Printf("%v has these referenced %v", ing.Name, ings.Ingredients[ind].Referenced)
+
 				found = true
 				break
 			}

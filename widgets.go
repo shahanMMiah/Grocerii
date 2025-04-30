@@ -62,7 +62,6 @@ func (m CustomTheme) Icon(name fyne.ThemeIconName) fyne.Resource {
 func (m CustomTheme) Font(style fyne.TextStyle) fyne.Resource {
 	return resourceCheescakeMonolineTtf
 
-	//return theme.DefaultTheme().Font(style)
 }
 
 func (m CustomTheme) Size(name fyne.ThemeSizeName) float32 {
@@ -111,7 +110,6 @@ func (s *SearchEntry) HighlightSearch(objs *[]fyne.CanvasObject, items Groceitem
 				}
 
 			}
-			//nameEntry.Refresh()
 
 		}
 		ings.Update = true
@@ -131,7 +129,6 @@ func (s *SearchEntry) HighlightSearch(objs *[]fyne.CanvasObject, items Groceitem
 				}
 
 			}
-			//Re.Refresh()
 
 		}
 		recs.Update = true
@@ -186,15 +183,7 @@ type TappableLabel struct {
 
 func (t *TappableLabel) TappedSecondary(_ *fyne.PointEvent) {
 	t.CallBack()
-	/*
-		dialog.NewConfirm(
-			fmt.Sprintf("delete %v", t.Text),
-			fmt.Sprintf("delete %v", t.Text),
-			func(bool) {
 
-			},
-			t.Win)
-	*/
 }
 
 func NewTabableLabel(t string, i int) *TappableLabel {
@@ -208,7 +197,7 @@ func NewTabableLabel(t string, i int) *TappableLabel {
 
 	label.EntryInd = i
 	label.Color = theme.ColorNameForeground
-	//label.Win = fyne.CurrentApp().NewWindow(fmt.Sprintf("%v %v window", label.Segments[0].(*widget.TextSegment).Text, label.EntryInd))
+
 	return label
 }
 

@@ -38,7 +38,7 @@ $ cd Grocerii
 $ go build
 
 # Run the app
-$ Grocerii
+$ ./Grocerii
 ```
 ## Credits
 

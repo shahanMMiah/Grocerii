@@ -295,7 +295,7 @@ func ReadData(ur fyne.URI) []byte {
 	data, rErr := storage.LoadResourceFromURI(ur)
 
 	if rErr != nil {
-		//fmt.Println("no data file found using default")
+
 		data = resourceDataJson
 	}
 
@@ -346,7 +346,6 @@ func GetEntryData(c []fyne.CanvasObject, g Groceitem) {
 
 func buildIngredientsWindow(a fyne.App, r *recipe, recs *recipes, i *ingredients, d fyne.URI) fyne.Window {
 
-	//fmt.Println(r)
 	ingSearch := Trie{}
 	ingSearch.build(&r.RecipeIngs)
 
@@ -371,7 +370,7 @@ func buildIngredientsWindow(a fyne.App, r *recipe, recs *recipes, i *ingredients
 
 	addIngsBtn := widget.NewToolbarAction(theme.ContentAddIcon(), func() {
 		if ingSearchBar.Text != "" {
-			//AddEntry(&r.RecipeIngs, ingContainer, window)
+
 			r.RecipeIngs.Insert(ingSearchBar.Text)
 		}
 	})
@@ -391,7 +390,6 @@ func buildIngredientsWindow(a fyne.App, r *recipe, recs *recipes, i *ingredients
 	ingToolbar := widget.NewToolbar(addIngsBtn, saveBtn, transIngsBtn)
 	ingTopCont := container.NewVBox(ingToolbar)
 
-	//ingToolbar.Move(fyne.NewPos(0, 30))
 	ingSearchBar.Resize(fyne.NewSize(WINSIZEX-10, 50))
 	ingSearchBar.Move(fyne.NewPos(0, 40))
 
@@ -420,11 +418,7 @@ func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) 
 	ingSearch.build(i)
 	recSearch.build(r)
 
-	//fmt.Println(recSearch)
-	//listObj := &widget.List{}
-
 	ingContainer := container.NewStack()
-	//ingContainer.Resize(fyne.NewSize(WINSIZEX, WINSIZEY))
 
 	ingsEntries := MakeIngEntries(i)
 	DrawEntries(ingsEntries, ingContainer, i)
@@ -465,7 +459,7 @@ func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) 
 	ingTopCont := container.NewVBox(ingToolbar)
 
 	ingMainCont := container.NewWithoutLayout(ingTopCont, ingSearchBar, ingContainer)
-	//ingToolbar.Move(fyne.NewPos(0, 30))
+
 	ingSearchBar.Resize(fyne.NewSize(WINSIZEX-10, 50))
 	ingSearchBar.Move(fyne.NewPos(0, 40))
 	ingContainer.Resize(fyne.NewSize(WINSIZEX-10, WINSIZEY-180))
@@ -490,8 +484,6 @@ func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) 
 
 	})
 
-	//AddEntry(r, recContainer, w) })
-
 	saveBtn := widget.NewToolbarAction(theme.DocumentSaveIcon(), func() {
 		GetEntryData(recEntries, r)
 		SaveData(d, i, r)
@@ -503,7 +495,6 @@ func BuildUI(a fyne.App, w fyne.Window, i *ingredients, r *recipes, d fyne.URI) 
 	)
 
 	recMainCont := container.NewWithoutLayout(recTopCont, recSearchBar, recContainer)
-	//ingToolbar.Move(fyne.NewPos(0, 30))
 
 	recSearchBar.Resize(fyne.NewSize(WINSIZEX-10, 50))
 	recSearchBar.Resize(fyne.NewSize(WINSIZEX-10, 50))
