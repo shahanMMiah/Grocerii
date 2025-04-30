@@ -18,9 +18,9 @@
 
 ## Key Features
 
-* Add and remove ingredients and Recipe entries
-* Search entries and Sort order
-* Transfer recipe ingredients to main ingredient list
+* Add and remove ingredients and recipe entries
+* Search entries and sort order
+* Transfer recipe ingredients to the main ingredients list
 
 
 ## How To Use
